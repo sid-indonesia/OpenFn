@@ -1,7 +1,7 @@
 // Your job goes here.
 
 // KoBo to FHIR
-post("Patient", {
+post(sourceValue("$.configuration.resource") + "Patient", {
   body: fields(
     field("resourceType", "Patient"),
     field("identifier", [
