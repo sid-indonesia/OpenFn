@@ -2,7 +2,7 @@
 
 console.log(sourceValue("$.configuration.resource")(state));
 // KoBo to FHIR
-post("something/" + "Patient", {
+post("sourceValue("$.configuration.resource")(state)" + "Patient", {
   body: fields(
     field("resourceType", "Patient"),
     field("identifier", [
