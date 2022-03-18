@@ -1,7 +1,8 @@
 // Your job goes here.
 
+console.log(sourceValue("$.configuration.resource")(state));
 // KoBo to FHIR
-post("localhost/" + "Patient", {
+post(sourceValue("$.configuration.resource")(state) + "Patient", {
   body: fields(
     field("resourceType", "Patient"),
     field("identifier", [
@@ -49,6 +50,9 @@ post("localhost/" + "Patient", {
       },
     ])
   ),
+  headers: {
+    "Content-Type": "application/fhir+json",
+  },
 });
 
 // post("Observation", {
