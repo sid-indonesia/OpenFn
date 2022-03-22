@@ -2,7 +2,8 @@
 
 console.log(sourceValue("$.configuration.resource")(state));
 // KoBo to FHIR
-post(sourceValue("$.configuration.resource")(state) + "Patient", {
+
+post("Patient", {
   body: fields(
     field("resourceType", "Patient"),
     field("identifier", [
@@ -52,7 +53,7 @@ post(sourceValue("$.configuration.resource")(state) + "Patient", {
   ),
   headers: {
     "Content-Type": "application/fhir+json",
-    "Authorization": sourceValue("$.configuration.accessToken"),
+    "Authorization": sourceValue("$.configuration.accessToken"), // still not working
   },
 });
 
