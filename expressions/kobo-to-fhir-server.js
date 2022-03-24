@@ -76,7 +76,9 @@
 // // TODO: @Levi, once you're happy with the resources, try sending them
 // // to a particular URL and view the server response in the output.json file.
 
-post(sourceValue("configuration.resource")(state) + "Patient", {
+console.log(sourceValue('$.configuration')(state))
+
+post(sourceValue("$.configuration.resource")(state) + "Patient", {
   body: fields(
     field("resourceType", "Patient"),
     field("identifier", [
@@ -126,7 +128,7 @@ post(sourceValue("configuration.resource")(state) + "Patient", {
   ),
   headers: {
     "Content-Type": "application/fhir+json",
-    "Authorization": "Bearer " + sourceValue("$.configuration.accessToken")(state),
+    "Authorization": sourceValue("$.configuration.tokenType")(state) + sourceValue("$.configuration.accessToken")(state),
   },
 });
 
