@@ -1,7 +1,7 @@
 // // Build "patient" resource
 // fn(state => {
 //   console.log(dataValue('patient/name'),
-//     dataValue('patient/name')(state));
+//     dataValue('patient/name'));
 //   // @Taylor, why if without "(state)" it returns `[Function (anonymous)]` and write no value in the `output.json`?
 
 //   const patient = {
@@ -10,41 +10,41 @@
 //       {
 //         use: 'usual',
 //         system: 'https://fhir.kemkes.go.id/id/nik',
-//         value: dataValue('patient/identifier_NIK')(state),
+//         value: dataValue('patient/identifier_NIK'),
 //       },
 //     ],
 //     name: [
 //       {
 //         use: "official",
-//         text: dataValue('patient/name')(state),
+//         text: dataValue('patient/name'),
 //       },
 //     ],
 //     gender: "female",
-//     birthDate: dataValue('patient/birth_date')(state),
+//     birthDate: dataValue('patient/birth_date'),
 //     address: [
 //       {
 //         use: "home",
-//         text: dataValue('patient/address')(state),
+//         text: dataValue('patient/address'),
 //       },
 //     ],
 //     contact: [
 //       {
 //         name: {
 //           use: "official",
-//           text: dataValue('patient/husband_name')(state),
+//           text: dataValue('patient/husband_name'),
 //         },
 //         gender: "male",
 //         extension: [
 //           {
 //             url: "https://fhir.kemkes.go.id/StructureDefinition/patient-contact-birthDate",
-//             valueDate: dataValue('patient/husband_birth_date')(state),
+//             valueDate: dataValue('patient/husband_birth_date'),
 //           },
 //           {
 //             url: "https://fhir.kemkes.go.id/StructureDefinition/patient-contact-identifier",
 //             valueIdentifier: {
 //               use: "usual",
 //               system: "https://fhir.kemkes.go.id/id/nik",
-//               value: dataValue('patient/husband_identifier_NIK')(state),
+//               value: dataValue('patient/husband_identifier_NIK'),
 //             },
 //           },
 //         ],
@@ -76,9 +76,9 @@
 // // TODO: @Levi, once you're happy with the resources, try sending them
 // // to a particular URL and view the server response in the output.json file.
 
-console.log(sourceValue('$.configuration')(state));
+console.log(sourceValue('$.configuration'));
 
-post(sourceValue("$.configuration.resource")(state) + "Patient", {
+post(sourceValue("$.configuration.resource") + "Patient", {
   body: fields(
     field("resourceType", "Patient"),
     field("identifier", [
@@ -91,35 +91,35 @@ post(sourceValue("$.configuration.resource")(state) + "Patient", {
     field("name", [
       {
         use: "official",
-        text: dataValue("['patient/name']")(state),
+        text: dataValue("['patient/name']"),
       },
     ]),
     field("gender", "female"),
-    field("birthDate", dataValue("['patient/birth_date']")(state)),
+    field("birthDate", dataValue("['patient/birth_date']")),
     field("address", [
       {
         use: "home",
-        text: dataValue("['patient/address']")(state),
+        text: dataValue("['patient/address']"),
       },
     ]),
     field("contact", [
       {
         name: {
           use: "official",
-          text: dataValue("['patient/husband_name']")(state),
+          text: dataValue("['patient/husband_name']"),
         },
         gender: "male",
         extension: [
           {
             url: "https://fhir.kemkes.go.id/StructureDefinition/patient-contact-birthDate",
-            valueDate: dataValue("['patient/husband_birth_date']")(state),
+            valueDate: dataValue("['patient/husband_birth_date']"),
           },
           {
             url: "https://fhir.kemkes.go.id/StructureDefinition/patient-contact-identifier",
             valueIdentifier: {
               use: "usual",
               system: "https://fhir.kemkes.go.id/id/nik",
-              value: dataValue("['patient/husband_identifier_NIK']")(state),
+              value: dataValue("['patient/husband_identifier_NIK']"),
             },
           },
         ],
@@ -140,7 +140,7 @@ post(sourceValue("$.configuration.resource")(state) + "Patient", {
 //       "subject",
 //       field(
 //         "reference",
-//         (state) => `Patient/${dataValue("id")(state)}`
+//         (state) => `Patient/${dataValue("id")}`
 //       )
 //     )
 //   ),
