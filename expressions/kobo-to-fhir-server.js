@@ -100,7 +100,7 @@
 // // TODO: @Levi, once you're happy with the resources, try sending them
 // // to a particular URL and view the server response in the output.json file.
 
-// // How to send them...
+// // How to send them...?
 
 
 
@@ -156,6 +156,7 @@ post(sourceValue('$.configuration.resource') + 'Patient', {
     'Content-Type': 'application/fhir+json',
     'Authorization': sourceValue('$.configuration.tokenType') + ' ' + sourceValue('$.configuration.accessToken'),
     // TODO handle if expire, POST grant_type=refresh_token?
+    // https://stackoverflow.com/a/43349958
   },
 });
 
