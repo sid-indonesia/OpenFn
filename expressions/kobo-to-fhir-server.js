@@ -89,7 +89,7 @@
 //   return state;
 // });
 
-// console.log(state); // why is this logs `state` before those `fn()` are called?
+console.log('these are the state', state); // why is this logs `state` before those `fn()` are called?
 
 // // @Taylor, how to attach the `state` from previous `fn()` in this `post()` as its request body?
 // // Currently it's the `state` before those `fn()`s.
@@ -102,7 +102,7 @@
 
 // // How to send them...?
 
-
+console.log('these are the configuration', state.configuration);
 
 post(sourceValue('$.configuration.resource')(state) + 'Patient', {
   body: fields(
