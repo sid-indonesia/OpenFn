@@ -154,7 +154,7 @@ post(sourceValue('$.configuration.resource') + 'Patient', {
   ),
   headers: {
     'Content-Type': 'application/fhir+json',
-    'Authorization': sourceValue('$.configuration.tokenType')(state) + ' ' + sourceValue('$.configuration.accessToken'),
+    'Authorization': sourceValue('$.configuration.tokenType')(state) + ' ' + sourceValue('$.configuration.accessToken')(state),
     // TODO handle if expire, POST grant_type=refresh_token?
     // https://stackoverflow.com/a/43349958
   },
