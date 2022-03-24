@@ -1,8 +1,5 @@
 // // Build "patient" resource
 // fn(state => {
-//   console.log(dataValue('patient/name'),
-//     dataValue('patient/name'));
-//   // @Taylor, why if without "(state)" it returns `[Function (anonymous)]` and write no value in the `output.json`?
 
 //   const patient = {
 //     resourceType: 'Patient',
@@ -15,35 +12,35 @@
 //     ],
 //     name: [
 //       {
-//         use: "official",
+//         use: 'official',
 //         text: dataValue('patient/name'),
 //       },
 //     ],
-//     gender: "female",
+//     gender: 'female',
 //     birthDate: dataValue('patient/birth_date'),
 //     address: [
 //       {
-//         use: "home",
+//         use: 'home',
 //         text: dataValue('patient/address'),
 //       },
 //     ],
 //     contact: [
 //       {
 //         name: {
-//           use: "official",
+//           use: 'official',
 //           text: dataValue('patient/husband_name'),
 //         },
-//         gender: "male",
+//         gender: 'male',
 //         extension: [
 //           {
-//             url: "https://fhir.kemkes.go.id/StructureDefinition/patient-contact-birthDate",
+//             url: 'https://fhir.kemkes.go.id/StructureDefinition/patient-contact-birthDate',
 //             valueDate: dataValue('patient/husband_birth_date'),
 //           },
 //           {
-//             url: "https://fhir.kemkes.go.id/StructureDefinition/patient-contact-identifier",
+//             url: 'https://fhir.kemkes.go.id/StructureDefinition/patient-contact-identifier',
 //             valueIdentifier: {
-//               use: "usual",
-//               system: "https://fhir.kemkes.go.id/id/nik",
+//               use: 'usual',
+//               system: 'https://fhir.kemkes.go.id/id/nik',
 //               value: dataValue('patient/husband_identifier_NIK'),
 //             },
 //           },
@@ -52,74 +49,103 @@
 //     ],
 //   };
 
-//   return { ...state, data: { patient } };
+//   return { ...state, transformedData: { patient } };
 // });
 
 // // Build "observation" resource
 // fn(state => {
-//   const observation = {};
+//   const observation = {
+//     resourceType: 'Observation',
+//     status: 'final',
+//     code: {
+//       coding: [
+//         {
+//           system: 'https://fhir.kemkes.go.id/CodeSystem/observation-code',
+//           code: 'KBB',
+//           display: 'Kesehatan Berat Badan',
+//         },
+//         {
+//           system: 'https://sid-indonesia.org/clinical-codes',
+//           code: 'body-weight',
+//           display: 'Body Weight'
+//         }
+//       ],
+//     },
+//     subject: {
+//       reference: '', // `fullUrl` to the Patient resource
+//     },
+//     effectiveDateTime: dataValue('anc_visit/visit_date'),
+//     valueQuantity: {
+//       value: dataValue('observations/value'),
+//       unit: 'kg',
+//     },
+//   };
 
-//   return { data: { ...state.data, observation } };
+//   return { ...state, transformedData: { ...state.transformedData, observation } };
 // });
 
 // fn(state => {
-//   console.log('these are the prepared FHIR resources', state.data);
+//   // console.log('these are the prepared FHIR resources', state.transformedData);
 //   return state;
 // });
 
+// console.log(state); // why is this logs `state` before those `fn()` are called?
+
 // // @Taylor, how to attach the `state` from previous `fn()` in this `post()` as its request body?
 // // Currently it's the `state` before those `fn()`s.
-// post("", state);
+// // post('', state);
 // // TODO post as FHIR transaction bundle
 // // https://www.hl7.org/fhir/http.html#transaction
 
 // // TODO: @Levi, once you're happy with the resources, try sending them
 // // to a particular URL and view the server response in the output.json file.
 
-console.log(sourceValue('$.configuration'));
+// // How to send them...
 
-post(sourceValue("$.configuration.resource") + "Patient", {
+
+
+post(sourceValue('$.configuration.resource') + 'Patient', {
   body: fields(
-    field("resourceType", "Patient"),
-    field("identifier", [
+    field('resourceType', 'Patient'),
+    field('identifier', [
       {
-        use: "usual",
-        system: "https://fhir.kemkes.go.id/id/nik",
-        value: dataValue("['patient/identifier_NIK']"),
+        use: 'usual',
+        system: 'https://fhir.kemkes.go.id/id/nik',
+        value: dataValue('patient/identifier_NIK'),
       },
     ]),
-    field("name", [
+    field('name', [
       {
-        use: "official",
-        text: dataValue("['patient/name']"),
+        use: 'official',
+        text: dataValue('patient/name'),
       },
     ]),
-    field("gender", "female"),
-    field("birthDate", dataValue("['patient/birth_date']")),
-    field("address", [
+    field('gender', 'female'),
+    field('birthDate', dataValue('patient/birth_date')),
+    field('address', [
       {
-        use: "home",
-        text: dataValue("['patient/address']"),
+        use: 'home',
+        text: dataValue('patient/address'),
       },
     ]),
-    field("contact", [
+    field('contact', [
       {
         name: {
-          use: "official",
-          text: dataValue("['patient/husband_name']"),
+          use: 'official',
+          text: dataValue('patient/husband_name'),
         },
-        gender: "male",
+        gender: 'male',
         extension: [
           {
-            url: "https://fhir.kemkes.go.id/StructureDefinition/patient-contact-birthDate",
-            valueDate: dataValue("['patient/husband_birth_date']"),
+            url: 'https://fhir.kemkes.go.id/StructureDefinition/patient-contact-birthDate',
+            valueDate: dataValue('patient/husband_birth_date'),
           },
           {
-            url: "https://fhir.kemkes.go.id/StructureDefinition/patient-contact-identifier",
+            url: 'https://fhir.kemkes.go.id/StructureDefinition/patient-contact-identifier',
             valueIdentifier: {
-              use: "usual",
-              system: "https://fhir.kemkes.go.id/id/nik",
-              value: dataValue("['patient/husband_identifier_NIK']"),
+              use: 'usual',
+              system: 'https://fhir.kemkes.go.id/id/nik',
+              value: dataValue('patient/husband_identifier_NIK'),
             },
           },
         ],
@@ -127,24 +153,25 @@ post(sourceValue("$.configuration.resource") + "Patient", {
     ])
   ),
   headers: {
-    "Content-Type": "application/fhir+json",
-    "Authorization": "Bearer " + sourceValue("$.configuration.accessToken"),
+    'Content-Type': 'application/fhir+json',
+    'Authorization': sourceValue('$.configuration.tokenType') + ' ' + sourceValue('$.configuration.accessToken'),
+    // TODO handle if expire, POST grant_type=refresh_token?
   },
 });
 
-// post("Observation", {
+// post('Observation', {
 //   body: fields(
-//     field("resourceType", "Observation"),
-//     field("status", "final"),
+//     field('resourceType', 'Observation'),
+//     field('status', 'final'),
 //     field(
-//       "subject",
+//       'subject',
 //       field(
-//         "reference",
-//         (state) => `Patient/${dataValue("id")}`
+//         'reference',
+//         (state) => `Patient/${dataValue('id')}`
 //       )
 //     )
 //   ),
 //   headers: {
-//     "Content-Type": "application/fhir+json",
+//     'Content-Type': 'application/fhir+json',
 //   },
 // });
