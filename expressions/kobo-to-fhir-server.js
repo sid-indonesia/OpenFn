@@ -76,7 +76,7 @@
 // // TODO: @Levi, once you're happy with the resources, try sending them
 // // to a particular URL and view the server response in the output.json file.
 
-post(sourceValue("configuration.accessToken")(state) + "Patient", {
+post(sourceValue("configuration.resource")(state) + "Patient", {
   body: fields(
     field("resourceType", "Patient"),
     field("identifier", [
