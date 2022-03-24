@@ -76,7 +76,7 @@
 // // TODO: @Levi, once you're happy with the resources, try sending them
 // // to a particular URL and view the server response in the output.json file.
 
-console.log(sourceValue('$.configuration')(state))
+console.log(sourceValue('$.configuration')(state));
 
 post(sourceValue("$.configuration.resource")(state) + "Patient", {
   body: fields(
