@@ -1,8 +1,4 @@
 // Your job goes here.
-console.log('this is the `expiresIn`', state.configuration.expiresIn);
-console.log('this is the `refreshExpiresIn`', state.configuration.refreshExpiresIn);
-console.log('this is the `givenName`', state.configuration.givenName);
-console.log('this is the `familyName`', state.configuration.familyName);
 
 post(sourceValue('$.configuration.resource')(state) + 'Patient', {
   body: fields(
