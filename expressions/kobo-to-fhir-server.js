@@ -128,7 +128,7 @@ post(sourceValue("$.configuration.resource")(state) + "Patient", {
   ),
   headers: {
     "Content-Type": "application/fhir+json",
-    "Authorization": "Bearer " + sourceValue("$.configuration.accessToken")(state),
+    "Authorization": "Bearer " + sourceValue("$.configuration.accessToken"),
   },
 });
 
