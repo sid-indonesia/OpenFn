@@ -275,9 +275,11 @@ post(`${state.configuration.resource}`, {
           subject: {
             reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
           },
-          managingOrganization: {
-            reference: 'urn:uuid:089812b4-82ef-4528-bb15-c551022f364e', // same as "BKKBN" Organization's `fullurl`
-          }
+          managingOrganization: [
+            {
+              reference: 'urn:uuid:089812b4-82ef-4528-bb15-c551022f364e', // same as "BKKBN" Organization's `fullurl`
+            },
+          ],
         },
       },
       {
