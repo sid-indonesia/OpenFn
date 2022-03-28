@@ -8,8 +8,8 @@ post(`${state.configuration.resource}`, {
       {
         fullUrl: 'urn:uuid:089812b4-82ef-4528-bb15-c551022f364e',
         request: {
-          method: 'PUT?identifier=https://fhir.kemkes.go.id/id/organisasi|BKKBN',
-          url: 'Organization'
+          method: 'PUT',
+          url: 'Organization?identifier=https://fhir.kemkes.go.id/id/organisasi|BKKBN'
         },
 
         resource: {
@@ -92,9 +92,11 @@ post(`${state.configuration.resource}`, {
               ],
             },
           ],
-          managingOrganization: {
-            reference: 'urn:uuid:089812b4-82ef-4528-bb15-c551022f364e', // same as "BKKBN" Organization's `fullurl`
-          },
+          managingOrganization: [
+            {
+              reference: 'urn:uuid:089812b4-82ef-4528-bb15-c551022f364e', // same as "BKKBN" Organization's `fullurl`
+            },
+          ],
         },
       },
       {
@@ -256,8 +258,8 @@ post(`${state.configuration.resource}`, {
       {
         fullUrl: 'urn:uuid:a2b4b91a-6c57-4bf1-9002-175a166e863f',
         request: {
-          method: `PUT?identifier=https://fhir.kemkes.go.id/id/hdw|${dataValue('form_ID/district')(state)}_${dataValue('form_ID/family_support_team_id')(state)}`,
-          url: 'CareTeam'
+          method: 'PUT',
+          url: `CareTeam?identifier=https://fhir.kemkes.go.id/id/hdw|${dataValue('form_ID/district')(state)}_${dataValue('form_ID/family_support_team_id')(state)}`,
         },
 
         resource: {
@@ -299,9 +301,11 @@ post(`${state.configuration.resource}`, {
           subject: {
             reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
           },
-          careTeam: {
-            reference: 'urn:uuid:a2b4b91a-6c57-4bf1-9002-175a166e863f', // same as CareTeam's `fullurl`
-          },
+          careTeam: [
+            {
+              reference: 'urn:uuid:a2b4b91a-6c57-4bf1-9002-175a166e863f', // same as CareTeam's `fullurl`
+            },
+          ],
         },
       },
     ],
