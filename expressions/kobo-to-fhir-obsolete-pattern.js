@@ -9,7 +9,7 @@ post(`${state.configuration.resource}`, {
         fullUrl: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // will be referenced in many `Observation` resources
         request: {
           method: 'PUT',
-          url: `Patient?identifier=https://fhir.kemkes.go.id/id/nik|${dataValue('patient_ID/patient_identifier_NIK')}`
+          url: `Patient?identifier=https://fhir.kemkes.go.id/id/nik|${dataValue('patient_ID/patient_identifier_NIK')(state)}`
         },
 
         resource: {
@@ -61,7 +61,6 @@ post(`${state.configuration.resource}`, {
         },
       },
       {
-        fullUrl: 'urn:uuid:9b3055be-bb9f-4fce-b5da-599286eb2841',
         request: {
           method: 'POST',
           url: 'Observation'
@@ -89,13 +88,12 @@ post(`${state.configuration.resource}`, {
           },
           effectiveDateTime: dataValue('anc_visit/visit_date'),
           valueQuantity: {
-            value: dataValue('observations/circumference_mid_upper_arm'),
+            value: Number(dataValue('observations/circumference_mid_upper_arm')(state)),
             unit: 'cm',
           },
         },
       },
       {
-        fullUrl: 'urn:uuid:bf551c01-8aa5-4ace-99d4-ae03a5bc89e7',
         request: {
           method: 'POST',
           url: 'Observation'
@@ -108,16 +106,114 @@ post(`${state.configuration.resource}`, {
             coding: [
               {
                 system: 'http://loinc.org',
-                code: '56072-2', // TODO change hemoglobin
-                display: 'Hemoglobin', // TODO change correct one if this is wrong
+                code: '718-7',
+                display: 'Hemoglobin [Mass/volume] in Blood',
               },
               {
                 system: 'https://sid-indonesia.org/clinical-codes',
-                code: 'hemoglobin',
-                display: 'Hemoglobin',
-              }
-            ]
-          }
+                code: 'hb-level-lab-test-result',
+                display: 'Hb level lab test result',
+              },
+            ],
+          },
+          subject: {
+            reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
+          },
+          effectiveDateTime: dataValue('anc_visit/visit_date'),
+          valueQuantity: {
+            value: Number(dataValue('observations/hemoglobin')(state)),
+            unit: 'g/dL',
+          },
+        },
+      },
+      {
+        request: {
+          method: 'POST',
+          url: 'Observation'
+        },
+
+        resource: {
+          resourceType: 'Observation',
+          status: 'final',
+          code: {
+            coding: [
+              {
+                system: 'http://loinc.org',
+                code: 'LP35925-4',
+                display: 'Body mass index (BMI)',
+              },
+              {
+                system: 'https://sid-indonesia.org/clinical-codes',
+                code: 'body-mass-index',
+                display: 'Body Mass Index (BMI)',
+              },
+            ],
+          },
+          subject: {
+            reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
+          },
+          effectiveDateTime: dataValue('anc_visit/visit_date'),
+          valueString: dataValue('observations/body_mass_index'),
+        },
+      },
+      {
+        request: {
+          method: 'POST',
+          url: 'Observation'
+        },
+
+        resource: {
+          resourceType: 'Observation',
+          status: 'final',
+          code: {
+            coding: [
+              {
+                system: 'http://loinc.org',
+                code: '72154-8',
+                display: 'Pregnancy risk factors [RHEA]',
+              },
+              {
+                system: 'https://sid-indonesia.org/clinical-codes',
+                code: 'resiko-4t',
+                display: 'Resiko 4T (Terlalu tua, Terlalu muda, Terlalu banyak, Terlalu rapat masa hamilnya',
+              },
+            ],
+          },
+          subject: {
+            reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
+          },
+          effectiveDateTime: dataValue('anc_visit/visit_date'),
+          valueString: dataValue('observations/common_pregnancy_risks'),
+        },
+      },
+      {
+        request: {
+          method: 'POST',
+          url: 'Observation'
+        },
+
+        resource: {
+          resourceType: 'Observation',
+          status: 'final',
+          code: {
+            coding: [
+              {
+                system: 'http://loinc.org',
+                code: '83243-6',
+                display: 'Comorbidities and coexisting conditions',
+              },
+              {
+                system: 'https://sid-indonesia.org/clinical-codes',
+                code: 'comorbidities',
+                display: 'Comorbidities',
+              },
+            ],
+          },
+          subject: {
+            reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
+          },
+          effectiveDateTime: dataValue('anc_visit/visit_date'),
+          valueString: dataValue('observations/comorbidities'),
         },
       },
     ],
@@ -130,20 +226,3 @@ post(`${state.configuration.resource}`, {
     // https://stackoverflow.com/a/43349958
   },
 });
-
-// post('Observation', {
-//   body: fields(
-//     field('resourceType', 'Observation'),
-//     field('status', 'final'),
-//     field(
-//       'subject',
-//       field(
-//         'reference',
-//         (state) => `Patient/${dataValue('id')}`
-//       )
-//     )
-//   ),
-//   headers: {
-//     'Content-Type': 'application/fhir+json',
-//   },
-// });
