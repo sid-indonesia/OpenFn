@@ -6,6 +6,40 @@ post(`${state.configuration.resource}`, {
     field('type', 'transaction'),
     field('entry', [
       {
+        fullUrl: 'urn:uuid:089812b4-82ef-4528-bb15-c551022f364e',
+        request: {
+          method: 'PUT?identifier=https://fhir.kemkes.go.id/id/organisasi|BKKBN',
+          url: 'Organization'
+        },
+
+        resource: {
+          resourceType: 'Organization',
+          identifier: [
+            {
+              use: 'official',
+              system: 'https://fhir.kemkes.go.id/id/organisasi',
+              value: 'BKKBN',
+            },
+          ],
+          active: true,
+          type: [
+            {
+              coding: [
+                {
+                  system: 'http://hl7.org/fhir/ValueSet/organization-type',
+                  code: 'govt',
+                  display: 'Government',
+                },
+              ],
+            },
+          ],
+          name: 'Badan Kependudukan dan Keluarga Berencana Nasional (BKKBN)',
+          alias: [
+            'BKKBN',
+          ],
+        },
+      },
+      {
         fullUrl: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // will be referenced in many `Observation` resources
         request: {
           method: 'PUT',
@@ -58,6 +92,9 @@ post(`${state.configuration.resource}`, {
               ],
             },
           ],
+          managingOrganization: {
+            reference: 'urn:uuid:089812b4-82ef-4528-bb15-c551022f364e', // same as "BKKBN" Organization's `fullurl`
+          },
         },
       },
       {
@@ -214,6 +251,57 @@ post(`${state.configuration.resource}`, {
           },
           effectiveDateTime: dataValue('anc_visit/visit_date'),
           valueString: dataValue('observations/comorbidities'),
+        },
+      },
+      {
+        fullUrl: 'urn:uuid:a2b4b91a-6c57-4bf1-9002-175a166e863f',
+        request: {
+          method: `PUT?identifier=https://fhir.kemkes.go.id/id/hdw|${dataValue('form_ID/district')(state)}_${dataValue('form_ID/family_support_team_id')(state)}`,
+          url: 'CareTeam'
+        },
+
+        resource: {
+          resourceType: 'CareTeam',
+          identifier: [
+            {
+              use: 'official',
+              system: 'https://fhir.kemkes.go.id/id/hdw',
+              value: `${dataValue('form_ID/district')(state)}_${dataValue('form_ID/family_support_team_id')(state)}`,
+            }
+          ],
+          status: 'active',
+          subject: {
+            reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
+          },
+          managingOrganization: {
+            reference: 'urn:uuid:089812b4-82ef-4528-bb15-c551022f364e', // same as "BKKBN" Organization's `fullurl`
+          }
+        },
+      },
+      {
+        request: {
+          method: 'POST',
+          url: 'CarePlan'
+        },
+
+        resource: {
+          resourceType: 'CarePlan',
+          identifier: [
+            {
+              system: 'https://sid-indonesia.org/care-plan',
+              value: `${dataValue('patient_ID/patient_identifier_NIK')(state)}_${dataValue('anc_visit/visit_date')(state)}`,
+            },
+          ],
+          status: 'active',
+          intent: 'plan',
+          title: `${dataValue('anc_visit/visit_date')(state)} ${dataValue('anc_visit/summary')(state)}`,
+          description: dataValue('anc_visit/support_team_action'),
+          subject: {
+            reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
+          },
+          careTeam: {
+            reference: 'urn:uuid:a2b4b91a-6c57-4bf1-9002-175a166e863f', // same as CareTeam's `fullurl`
+          },
         },
       },
     ],
