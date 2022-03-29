@@ -102,7 +102,7 @@ post(`${state.configuration.resource}`, {
       {
         fullUrl: 'urn:uuid:13c31d68-114c-482a-a5e2-5df2c36a81c8', // will be referenced in many `Observation` resources
         request: {
-          method: 'POST',
+          method: 'PUT',
           url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`
         },
 
