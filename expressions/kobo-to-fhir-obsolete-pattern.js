@@ -100,6 +100,32 @@ post(`${state.configuration.resource}`, {
         },
       },
       {
+        fullUrl: 'urn:uuid:13c31d68-114c-482a-a5e2-5df2c36a81c8', // will be referenced in many `Observation` resources
+        request: {
+          method: 'POST',
+          url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`
+        },
+
+        resource: {
+          resourceType: 'Encounter',
+          status: 'finished',
+          class: {
+            system: 'http://terminology.hl7.org/ValueSet/v3-ActEncounterCode',
+            code: 'AMB',
+            display: 'ambulatory',
+          },
+          identifier: [
+            {
+              system: 'https://fhir.kemkes.go.id/id/encounter',
+              value: `${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`,
+            },
+          ],
+          subject: {
+            reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
+          },
+        },
+      },
+      {
         request: {
           method: 'POST',
           url: 'Observation'
@@ -124,6 +150,9 @@ post(`${state.configuration.resource}`, {
           },
           subject: {
             reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
+          },
+          encounter: {
+            reference: 'urn:uuid:13c31d68-114c-482a-a5e2-5df2c36a81c8', // same as Encounter's `fullurl`
           },
           effectiveDateTime: dataValue('anc_visit/visit_date'),
           valueQuantity: {
@@ -158,6 +187,9 @@ post(`${state.configuration.resource}`, {
           subject: {
             reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
           },
+          encounter: {
+            reference: 'urn:uuid:13c31d68-114c-482a-a5e2-5df2c36a81c8', // same as Encounter's `fullurl`
+          },
           effectiveDateTime: dataValue('anc_visit/visit_date'),
           valueQuantity: {
             value: Number(dataValue('observations/hemoglobin')(state)),
@@ -191,6 +223,9 @@ post(`${state.configuration.resource}`, {
           subject: {
             reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
           },
+          encounter: {
+            reference: 'urn:uuid:13c31d68-114c-482a-a5e2-5df2c36a81c8', // same as Encounter's `fullurl`
+          },
           effectiveDateTime: dataValue('anc_visit/visit_date'),
           valueString: dataValue('observations/body_mass_index'),
         },
@@ -221,6 +256,9 @@ post(`${state.configuration.resource}`, {
           subject: {
             reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
           },
+          encounter: {
+            reference: 'urn:uuid:13c31d68-114c-482a-a5e2-5df2c36a81c8', // same as Encounter's `fullurl`
+          },
           effectiveDateTime: dataValue('anc_visit/visit_date'),
           valueString: dataValue('observations/common_pregnancy_risks'),
         },
@@ -250,6 +288,9 @@ post(`${state.configuration.resource}`, {
           },
           subject: {
             reference: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // same as Patient's `fullurl`
+          },
+          encounter: {
+            reference: 'urn:uuid:13c31d68-114c-482a-a5e2-5df2c36a81c8', // same as Encounter's `fullurl`
           },
           effectiveDateTime: dataValue('anc_visit/visit_date'),
           valueString: dataValue('observations/comorbidities'),
@@ -284,16 +325,16 @@ post(`${state.configuration.resource}`, {
       },
       {
         request: {
-          method: 'POST',
-          url: 'CarePlan'
+          method: 'PUT',
+          url: `CarePlan?identifier=https://fhir.kemkes.go.id/id/care-plan|${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`,
         },
 
         resource: {
           resourceType: 'CarePlan',
           identifier: [
             {
-              system: 'https://sid-indonesia.org/care-plan',
-              value: `${dataValue('patient_ID/patient_identifier_NIK')(state)}_${dataValue('anc_visit/visit_date')(state)}`,
+              system: 'https://fhir.kemkes.go.id/id/care-plan',
+              value: `${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`,
             },
           ],
           status: 'active',
@@ -316,7 +357,5 @@ post(`${state.configuration.resource}`, {
   headers: {
     'Content-Type': 'application/fhir+json',
     'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
-    // TODO handle if expire, POST grant_type=refresh_token?
-    // https://stackoverflow.com/a/43349958
   },
 });
