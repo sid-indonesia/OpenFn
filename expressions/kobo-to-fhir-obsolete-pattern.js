@@ -300,7 +300,7 @@ post(`${state.configuration.resource}`, {
         fullUrl: 'urn:uuid:a2b4b91a-6c57-4bf1-9002-175a166e863f',
         request: {
           method: 'PUT',
-          url: `CareTeam?identifier=https://fhir.kemkes.go.id/id/hdw|${dataValue('form_ID/district')(state).replace(/ /g, "_")}_${dataValue('form_ID/family_support_team_id')(state).replace(/ /g, "_")}`,
+          url: `CareTeam?identifier=https://fhir.kemkes.go.id/id/hdw|${dataValue('form_ID/district')(state).replace(/ /g, "_")}_${dataValue('form_ID/family_support_team_id')(state).replace(/ /g, "_")}_${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}`,
         },
 
         resource: {
@@ -309,7 +309,7 @@ post(`${state.configuration.resource}`, {
             {
               use: 'official',
               system: 'https://fhir.kemkes.go.id/id/hdw',
-              value: `${dataValue('form_ID/district')(state).replace(/ /g, "_")}_${dataValue('form_ID/family_support_team_id')(state).replace(/ /g, "_")}`,
+              value: `${dataValue('form_ID/district')(state).replace(/ /g, "_")}_${dataValue('form_ID/family_support_team_id')(state).replace(/ /g, "_")}_${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}`,
             }
           ],
           status: 'active',
