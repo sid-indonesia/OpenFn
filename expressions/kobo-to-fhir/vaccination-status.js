@@ -5,7 +5,7 @@ fn(state => {
     fullUrl: 'urn:uuid:089812b4-82ef-4528-bb15-c551022f364e',
     request: {
       method: 'PUT',
-      url: 'Organization?identifier=https://fhir.kemkes.go.id/id/organisasi|BKKBN'
+      url: 'Organization?identifier=https://fhir.kemkes.go.id/id/organisasi|Kemkes'
     },
 
     resource: {
@@ -14,7 +14,7 @@ fn(state => {
         {
           use: 'official',
           system: 'https://fhir.kemkes.go.id/id/organisasi',
-          value: 'BKKBN',
+          value: 'Kemkes',
         },
       ],
       active: true,
@@ -29,9 +29,10 @@ fn(state => {
           ],
         },
       ],
-      name: 'Badan Kependudukan dan Keluarga Berencana Nasional (BKKBN)',
+      name: 'Kementerian Kesehatan RI',
       alias: [
-        'BKKBN',
+        'Kemkes',
+        'Kemenkes RI',
       ],
     },
   };
@@ -61,6 +62,7 @@ fn(state => {
       name: [
         {
           use: 'official',
+          given: dataValue('id_pasutri/nama_bumil'),
           text: dataValue('id_pasutri/nama_bumil'),
         },
       ],
@@ -76,6 +78,7 @@ fn(state => {
         {
           name: {
             use: 'official',
+            given: dataValue('id_pasutri/nama_suami'),
             text: dataValue('id_pasutri/nama_suami'),
           },
           gender: 'male',
@@ -141,291 +144,301 @@ fn(state => {
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, encounter] } };
 });
 
-// Build "CareTeam" resource
+// Build "Observation" resource, for "Vaccine reaction"
 fn(state => {
-  const careTeam = {
-    fullUrl: 'urn:uuid:a2b4b91a-6c57-4bf1-9002-175a166e863f', // will be referenced in other resource(s)
-    request: {
-      method: 'PUT',
-      url: `CareTeam?identifier=https://fhir.kemkes.go.id/id/hdw|${dataValue('form_ID/district')(state).replace(/ /g, "_")}_${dataValue('form_ID/family_support_team_id')(state).replace(/ /g, "_")}_${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}`,
-    },
 
-    resource: {
-      resourceType: 'CareTeam',
-      identifier: [
-        {
-          use: 'official',
-          system: 'https://fhir.kemkes.go.id/id/hdw',
-          value: `${dataValue('form_ID/district')(state).replace(/ /g, "_")}_${dataValue('form_ID/family_support_team_id')(state).replace(/ /g, "_")}_${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}`,
-        }
-      ],
-      status: 'active',
-      subject: {
-        reference: state.transactionBundle.entry
-          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
+  let observations = [];
+
+  if (dataValue('vaksin/efek_samping_vaksin')(state) != null) {
+    const reactionDate = new Date(dataValue('vaksin/dosis1_kapan')(state));
+    reactionDate.setDate(vaccineDate.getDate() + Number(dataValue('vaksin/efek_samping_kapan')(state)));
+
+    observations.push({
+      request: {
+        method: 'POST',
+        url: 'Observation'
       },
-      managingOrganization: [
-        {
+
+      resource: {
+        resourceType: 'Observation',
+        status: 'final',
+        code: {
+          coding: [
+            {
+              system: 'http://loinc.org',
+              code: '31044-1',
+              display: 'Immunization reaction',
+            },
+          ],
+        },
+        subject: {
           reference: state.transactionBundle.entry
-            .find(e => e.resource.resourceType === 'Organization').fullUrl, // same as "BKKBN" Organization's `fullurl`
+            .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
         },
-      ],
-    },
-  };
-
-  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, careTeam] } };
-});
-
-// Build "CarePlan" resource
-fn(state => {
-  const carePlan = {
-    request: {
-      method: 'PUT',
-      url: `CarePlan?identifier=https://fhir.kemkes.go.id/id/care-plan|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`,
-    },
-
-    resource: {
-      resourceType: 'CarePlan',
-      identifier: [
-        {
-          system: 'https://fhir.kemkes.go.id/id/care-plan',
-          value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`,
-        },
-      ],
-      status: 'active',
-      intent: 'plan',
-      title: `${dataValue('anc_visit/visit_date')(state)} ${dataValue('anc_visit/summary')(state)}`,
-      description: dataValue('anc_visit/support_team_action'),
-      subject: {
-        reference: state.transactionBundle.entry
-          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
-      },
-      careTeam: [
-        {
+        encounter: {
           reference: state.transactionBundle.entry
-            .find(e => e.resource.resourceType === 'CareTeam').fullUrl, // same as CareTeam's `fullurl`
+            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
         },
-      ],
-    },
+        effectiveDateTime: reactionDate,
+        valueString: dataValue('vaksin/efek_samping_vaksin'),
+      },
+    });
+
+    if (dataValue('vaksin/efek_samping_vaksin2')(state) != null) {
+      observations.push({
+        request: {
+          method: 'POST',
+          url: 'Observation'
+        },
+
+        resource: {
+          resourceType: 'Observation',
+          status: 'final',
+          code: {
+            coding: [
+              {
+                system: 'https://sid-indonesia.org/clinical-codes',
+                code: 'immunization-reaction',
+                display: 'Immunization reaction',
+              },
+            ],
+          },
+          subject: {
+            reference: state.transactionBundle.entry
+              .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
+          },
+          encounter: {
+            reference: state.transactionBundle.entry
+              .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+          },
+          effectiveDateTime: reactionDate,
+          valueString: dataValue('vaksin/efek_samping_vaksin2'),
+        },
+      });
+    };
   };
 
-  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, carePlan] } };
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, ...observations] } };
 });
 
-// Build "Observation" resource, for "Circumference Mid Upper Arm"
+// Build "Immunization" resource
 fn(state => {
-  const observation = {
-    request: {
-      method: 'POST',
-      url: 'Observation'
-    },
 
-    resource: {
-      resourceType: 'Observation',
-      status: 'final',
-      code: {
-        coding: [
+  let immunizations = [];
+
+  if (dataValue('vaksin/dosis1_apa')(state) != null) {
+    immunizations.push({
+      request: {
+        method: 'PUT',
+        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_1`
+      },
+
+      resource: {
+        resourceType: 'Immunization',
+        identifier: [
           {
-            system: 'http://loinc.org',
-            code: '56072-2',
-            display: 'Circumference Mid upper arm - right',
-          },
-          {
-            system: 'https://sid-indonesia.org/clinical-codes',
-            code: 'mid-upper-arm-circumference',
-            display: 'Mid upper arm circumference',
+            system: 'https://fhir.kemkes.go.id/id/immunization',
+            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_1`,
           },
         ],
-      },
-      subject: {
-        reference: state.transactionBundle.entry
-          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
-      },
-      encounter: {
-        reference: state.transactionBundle.entry
-          .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
-      },
-      effectiveDateTime: dataValue('anc_visit/visit_date'),
-      valueQuantity: {
-        value: Number(dataValue('observations/circumference_mid_upper_arm')(state)),
-        unit: 'cm',
-      },
-    },
-  };
-
-  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
-});
-
-// Build "Observation" resource, for "Hemoglobin"
-fn(state => {
-  const observation = {
-    request: {
-      method: 'POST',
-      url: 'Observation'
-    },
-
-    resource: {
-      resourceType: 'Observation',
-      status: 'final',
-      code: {
-        coding: [
+        status: 'completed',
+        vaccineCode: {
+          coding: [
+            {
+              system: 'https://fhir.kemkes.go.id/id/vaccine',
+              code: `COVID19_${dataValue('vaksin/dosis1_apa')(state)}`,
+              display: `Covid-19 vaccine, brand: ${dataValue('vaksin/dosis1_apa')(state)}`,
+            },
+          ],
+        },
+        occurrenceDateTime: dataValue('vaksin/dosis1_kapan'),
+        patient: {
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
+        },
+        encounter: {
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+        },
+        protocolApplied: [
           {
-            system: 'http://loinc.org',
-            code: '718-7',
-            display: 'Hemoglobin [Mass/volume] in Blood',
-          },
-          {
-            system: 'https://sid-indonesia.org/clinical-codes',
-            code: 'hb-level-lab-test-result',
-            display: 'Hb level lab test result',
+            series: 'COVID19',
+            authority: {
+              reference: state.transactionBundle.entry
+                .find(e => e.resource.resourceType === 'Organization').fullUrl, // same as "Kemkes" Organization's `fullurl`
+            },
+            targetDisease: [
+              {
+                coding: [
+                  {
+                    system: 'https://fhir.kemkes.go.id/id/disease',
+                    code: 'COVID19',
+                    display: 'Coronavirus disease caused by the SARS-CoV-2 virus',
+                  },
+                ],
+              },
+            ],
+            doseNumberPositiveInt: 1,
+            seriesDosesPositiveInt: 3,
           },
         ],
-      },
-      subject: {
-        reference: state.transactionBundle.entry
-          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
-      },
-      encounter: {
-        reference: state.transactionBundle.entry
-          .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
-      },
-      effectiveDateTime: dataValue('anc_visit/visit_date'),
-      valueQuantity: {
-        value: Number(dataValue('observations/hemoglobin')(state)),
-        unit: 'g/dL',
-      },
-    },
-  };
-
-  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
-});
-
-// Build "Observation" resource, for "Body Mass Index"
-fn(state => {
-  const observation = {
-    request: {
-      method: 'POST',
-      url: 'Observation'
-    },
-
-    resource: {
-      resourceType: 'Observation',
-      status: 'final',
-      code: {
-        coding: [
+        reaction: [
           {
-            system: 'http://loinc.org',
-            code: 'LP35925-4',
-            display: 'Body mass index (BMI)',
-          },
-          {
-            system: 'https://sid-indonesia.org/clinical-codes',
-            code: 'body-mass-index',
-            display: 'Body Mass Index (BMI)',
+            date: dataValue('vaksin/efek_samping_kapan'),
+            detail: {
+              reference: state.transactionBundle.entry
+                .find(e => e.resource.resourceType === 'Observation').fullUrl, // same as Observation's `fullurl`
+            }
           },
         ],
-      },
-      subject: {
-        reference: state.transactionBundle.entry
-          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
-      },
-      encounter: {
-        reference: state.transactionBundle.entry
-          .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
-      },
-      effectiveDateTime: dataValue('anc_visit/visit_date'),
-      valueString: dataValue('observations/body_mass_index'),
-    },
-  };
+      }
+    });
+  }
 
-  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
-});
+  if (dataValue('vaksin/dosis2_apa')(state) != null) {
+    immunizations.push({
+      request: {
+        method: 'PUT',
+        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_2`
+      },
 
-// Build "Observation" resource, for "Pregnancy risk factors" or "Resiko 4T"
-fn(state => {
-  const observation = {
-    request: {
-      method: 'POST',
-      url: 'Observation'
-    },
-
-    resource: {
-      resourceType: 'Observation',
-      status: 'final',
-      code: {
-        coding: [
+      resource: {
+        resourceType: 'Immunization',
+        identifier: [
           {
-            system: 'http://loinc.org',
-            code: '72154-8',
-            display: 'Pregnancy risk factors [RHEA]',
-          },
-          {
-            system: 'https://sid-indonesia.org/clinical-codes',
-            code: 'resiko-4t',
-            display: 'Resiko 4T (Terlalu tua, Terlalu muda, Terlalu banyak, Terlalu rapat masa hamilnya',
+            system: 'https://fhir.kemkes.go.id/id/immunization',
+            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_2`,
           },
         ],
-      },
-      subject: {
-        reference: state.transactionBundle.entry
-          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
-
-      },
-      encounter: {
-        reference: state.transactionBundle.entry
-          .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
-      },
-      effectiveDateTime: dataValue('anc_visit/visit_date'),
-      valueString: dataValue('observations/common_pregnancy_risks'),
-    },
-  };
-
-  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
-});
-
-// Build "Observation" resource, for "Comorbidities"
-fn(state => {
-  const observation = {
-    request: {
-      method: 'POST',
-      url: 'Observation'
-    },
-
-    resource: {
-      resourceType: 'Observation',
-      status: 'final',
-      code: {
-        coding: [
+        status: 'completed',
+        vaccineCode: {
+          coding: [
+            {
+              system: 'https://fhir.kemkes.go.id/id/vaccine',
+              code: `COVID19_${dataValue('vaksin/dosis2_apa')(state)}`,
+              display: `Covid-19 vaccine, brand: ${dataValue('vaksin/dosis2_apa')(state)}`,
+            },
+          ],
+        },
+        occurrenceDateTime: dataValue('vaksin/dosis2_kapan'),
+        patient: {
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
+        },
+        encounter: {
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+        },
+        protocolApplied: [
           {
-            system: 'http://loinc.org',
-            code: '83243-6',
-            display: 'Comorbidities and coexisting conditions',
-          },
-          {
-            system: 'https://sid-indonesia.org/clinical-codes',
-            code: 'comorbidities',
-            display: 'Comorbidities',
+            series: 'COVID19',
+            authority: {
+              reference: state.transactionBundle.entry
+                .find(e => e.resource.resourceType === 'Organization').fullUrl, // same as "Kemkes" Organization's `fullurl`
+            },
+            targetDisease: [
+              {
+                coding: [
+                  {
+                    system: 'https://fhir.kemkes.go.id/id/disease',
+                    code: 'COVID19',
+                    display: 'Coronavirus disease caused by the SARS-CoV-2 virus',
+                  },
+                ],
+              },
+            ],
+            doseNumberPositiveInt: 2,
+            seriesDosesPositiveInt: 3,
           },
         ],
-      },
-      subject: {
-        reference: state.transactionBundle.entry
-          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
-      },
-      encounter: {
-        reference: state.transactionBundle.entry
-          .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
-      },
-      effectiveDateTime: dataValue('anc_visit/visit_date'),
-      valueString: dataValue('observations/comorbidities'),
-    },
-  };
+        reaction: [
+          {
+            date: dataValue('vaksin/efek_samping_kapan'),
+            detail: {
+              reference: state.transactionBundle.entry
+                .find(e => e.resource.resourceType === 'Observation').fullUrl, // same as Observation's `fullurl`
+            }
+          },
+        ],
+      }
+    });
+  }
 
-  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
+  if (dataValue('vaksin/dosis3_apa')(state) != null) {
+    immunizations.push({
+      request: {
+        method: 'PUT',
+        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_3`
+      },
+
+      resource: {
+        resourceType: 'Immunization',
+        identifier: [
+          {
+            system: 'https://fhir.kemkes.go.id/id/immunization',
+            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_3`,
+          },
+        ],
+        status: 'completed',
+        vaccineCode: {
+          coding: [
+            {
+              system: 'https://fhir.kemkes.go.id/id/vaccine',
+              code: `COVID19_${dataValue('vaksin/dosis3_apa')(state)}`,
+              display: `Covid-19 vaccine, brand: ${dataValue('vaksin/dosis3_apa')(state)}`,
+            },
+          ],
+        },
+        occurrenceDateTime: dataValue('vaksin/dosis3_kapan'),
+        patient: {
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
+        },
+        encounter: {
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+        },
+        protocolApplied: [
+          {
+            series: 'COVID19',
+            authority: {
+              reference: state.transactionBundle.entry
+                .find(e => e.resource.resourceType === 'Organization').fullUrl, // same as "Kemkes" Organization's `fullurl`
+            },
+            targetDisease: [
+              {
+                coding: [
+                  {
+                    system: 'https://fhir.kemkes.go.id/id/disease',
+                    code: 'COVID19',
+                    display: 'Coronavirus disease caused by the SARS-CoV-2 virus',
+                  },
+                ],
+              },
+            ],
+            doseNumberPositiveInt: 3,
+            seriesDosesPositiveInt: 3,
+          },
+        ],
+        reaction: [
+          {
+            date: dataValue('vaksin/efek_samping_kapan'),
+            detail: {
+              reference: state.transactionBundle.entry
+                .find(e => e.resource.resourceType === 'Observation').fullUrl, // same as Observation's `fullurl`
+            }
+          },
+        ],
+      }
+    });
+  }
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, ...immunizations] } };
 });
 
 // Wrap up the transaction bundle
 fn(state => {
+
   return {
     ...state,
     transactionBundle: {
