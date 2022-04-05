@@ -276,7 +276,7 @@ fn(state => {
         valueString: dataValue('vaksin/status_vaksinasi'),
       },
     });
-  };
+  }
 
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, ...observations] } };
 });
@@ -460,8 +460,8 @@ fn(state => {
           valueString: dataValue('vaksin/efek_samping_vaksin2'),
         },
       });
-    };
-  };
+    }
+  }
 
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, ...observations] } };
 });
