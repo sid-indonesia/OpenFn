@@ -62,7 +62,9 @@ fn(state => {
       name: [
         {
           use: 'official',
-          given: dataValue('id_pasutri/nama_bumil'),
+          given: [
+            dataValue('id_pasutri/nama_bumil'),
+          ],
           text: dataValue('id_pasutri/nama_bumil'),
         },
       ],
@@ -78,7 +80,9 @@ fn(state => {
         {
           name: {
             use: 'official',
-            given: dataValue('id_pasutri/nama_suami'),
+            given: [
+              dataValue('id_pasutri/nama_suami'),
+            ],
             text: dataValue('id_pasutri/nama_suami'),
           },
           gender: 'male',
@@ -220,7 +224,7 @@ fn(state => {
       reference: state.transactionBundle.entry
         .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
     },
-    effectiveDateTime: dataValue('_submission_time'),
+    effectiveInstant: dataValue('_submission_time'),
     valueBoolean: hasReceivedCovidVaccine,
     extension: observationExtensions,
   };
@@ -268,8 +272,8 @@ fn(state => {
           reference: state.transactionBundle.entry
             .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
         },
-        effectiveDateTime: dataValue('_submission_time'),
-        valueBoolean: dataValue('vaksin/status_vaksinasi'),
+        effectiveInstant: dataValue('_submission_time'),
+        valueString: dataValue('vaksin/status_vaksinasi'),
       },
     });
   };
@@ -316,7 +320,7 @@ fn(state => {
           reference: state.transactionBundle.entry
             .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
         },
-        effectiveDateTime: dataValue('_submission_time'),
+        effectiveInstant: dataValue('_submission_time'),
         valueString: dataValue('vaksin/kenapa_belum'),
       },
     });
@@ -355,7 +359,7 @@ fn(state => {
             reference: state.transactionBundle.entry
               .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
           },
-          effectiveDateTime: dataValue('_submission_time'),
+          effectiveInstant: dataValue('_submission_time'),
           valueString: dataValue('vaksin/kenapa_belum2'),
         },
       });
@@ -372,7 +376,8 @@ fn(state => {
 
   if (dataValue('vaksin/efek_samping_vaksin')(state) != null) {
     const reactionDate = new Date(dataValue('vaksin/dosis1_kapan')(state));
-    reactionDate.setDate(vaccineDate.getDate() + Number(dataValue('vaksin/efek_samping_kapan')(state)));
+    reactionDate.setDate(reactionDate.getDate() + Number(dataValue('vaksin/efek_samping_kapan')(state)));
+    const reactionDateString = reactionDate.toISOString();
 
     observations.push({
       request: {
@@ -412,7 +417,7 @@ fn(state => {
           reference: state.transactionBundle.entry
             .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
         },
-        effectiveDateTime: reactionDate,
+        effectiveDateTime: reactionDateString,
         valueString: dataValue('vaksin/efek_samping_vaksin'),
       },
     });
@@ -451,7 +456,7 @@ fn(state => {
             reference: state.transactionBundle.entry
               .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
           },
-          effectiveDateTime: reactionDate,
+          effectiveDateTime: reactionDateString,
           valueString: dataValue('vaksin/efek_samping_vaksin2'),
         },
       });
@@ -465,6 +470,10 @@ fn(state => {
 fn(state => {
 
   let immunizations = [];
+
+  const reactionDate = new Date(dataValue('vaksin/dosis1_kapan')(state));
+  reactionDate.setDate(reactionDate.getDate() + Number(dataValue('vaksin/efek_samping_kapan')(state)));
+  const reactionDateString = reactionDate.toISOString();
 
   if (dataValue('vaksin/dosis1_apa')(state) != null) {
     immunizations.push({
@@ -524,7 +533,7 @@ fn(state => {
         ],
         reaction: [
           {
-            date: dataValue('vaksin/efek_samping_kapan'),
+            date: reactionDateString,
             detail: {
               reference: state.transactionBundle.entry
                 .find(e => e.resource.resourceType === 'Observation' && e.resource.code.coding[0].code === '31044-1')
@@ -594,7 +603,7 @@ fn(state => {
         ],
         reaction: [
           {
-            date: dataValue('vaksin/efek_samping_kapan'),
+            date: reactionDateString,
             detail: {
               reference: state.transactionBundle.entry
                 .find(e => e.resource.resourceType === 'Observation' && e.resource.code.coding[0].code === '31044-1')
@@ -664,7 +673,7 @@ fn(state => {
         ],
         reaction: [
           {
-            date: dataValue('vaksin/efek_samping_kapan'),
+            date: reactionDateString,
             detail: {
               reference: state.transactionBundle.entry
                 .find(e => e.resource.resourceType === 'Observation' && e.resource.code.coding[0].code === '31044-1')
