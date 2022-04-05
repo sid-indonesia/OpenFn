@@ -471,9 +471,13 @@ fn(state => {
 
   let immunizations = [];
 
-  const reactionDate = new Date(dataValue('vaksin/dosis1_kapan')(state));
-  reactionDate.setDate(reactionDate.getDate() + Number(dataValue('vaksin/efek_samping_kapan')(state)));
-  const reactionDateString = reactionDate.toISOString();
+  let reactionDateString;
+
+  if (dataValue('vaksin/dosis1_kapan')(state) != null) {
+    const reactionDate = new Date(dataValue('vaksin/dosis1_kapan')(state));
+    reactionDate.setDate(reactionDate.getDate() + Number(dataValue('vaksin/efek_samping_kapan')(state)));
+    reactionDateString = reactionDate.toISOString();
+  }
 
   if (dataValue('vaksin/dosis1_apa')(state) != null) {
     immunizations.push({
