@@ -117,7 +117,7 @@ fn(state => {
     fullUrl: 'urn:uuid:13c31d68-114c-482a-a5e2-5df2c36a81c8', // will be referenced in other resources
     request: {
       method: 'PUT',
-      url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`
+      url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_STATUS`
     },
 
     resource: {
@@ -131,7 +131,7 @@ fn(state => {
       identifier: [
         {
           system: 'https://fhir.kemkes.go.id/id/encounter',
-          value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`,
+          value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_STATUS`,
         },
       ],
       subject: {
@@ -142,6 +142,227 @@ fn(state => {
   };
 
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, encounter] } };
+});
+
+// Build "Observation" resources, for "Received COVID-19 vaccine" and Dosage status
+fn(state => {
+
+  const hasReceivedCovidVaccine = dataValue('vaksin/status_vaksinasi')(state) === 'belum' ? false : true;
+
+  let observations = [];
+
+  let observationExtensions = [
+    {
+      url: 'https://fhir.kemkes.go.id/StructureDefinition/konsultan-vaksin',
+      valueString: dataValue('vaksin/konsultan_vaksin'),
+    },
+  ];
+
+  if (dataValue('vaksin/konsultan_vaksin2')(state) != null) {
+    observationExtensions.push({
+      url: 'https://fhir.kemkes.go.id/StructureDefinition/konsultan-vaksin-others',
+      valueString: dataValue('vaksin/konsultan_vaksin2'),
+    });
+  }
+
+  if (dataValue('vaksin/mau_vaksin_apa')(state) != null) {
+    observationExtensions.push({
+      url: 'https://fhir.kemkes.go.id/StructureDefinition/varian-vaksin',
+      valueString: dataValue('vaksin/mau_vaksin_apa'),
+    });
+  }
+
+  if (dataValue('vaksin/mau_vaksin_kenapa')(state) != null) {
+    observationExtensions.push({
+      url: 'https://fhir.kemkes.go.id/StructureDefinition/varian-vaksin-kenapa',
+      valueString: dataValue('vaksin/mau_vaksin_kenapa'),
+    });
+  }
+
+  if (dataValue('vaksin/mau_vaksin_kenapa2')(state) != null) {
+    observationExtensions.push({
+      url: 'https://fhir.kemkes.go.id/StructureDefinition/varian-vaksin-kenapa-others',
+      valueString: dataValue('vaksin/mau_vaksin_kenapa2'),
+    });
+  }
+
+  if (dataValue('vaksin/pesan_utk_ibu_vaksin')(state) != null) {
+    observationExtensions.push({
+      url: 'https://fhir.kemkes.go.id/StructureDefinition/pesan-utk-ibu-hamil-vaksin',
+      valueString: dataValue('vaksin/pesan_utk_ibu_vaksin'),
+    });
+  }
+
+  const observationResource = {
+    resourceType: 'Observation',
+    identifier: [
+      {
+        use: 'usual',
+        system: 'https://fhir.kemkes.go.id/id/observation',
+        value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_STATUS`,
+      },
+    ],
+    status: 'final',
+    code: {
+      coding: [
+        {
+          system: 'http://loinc.org',
+          code: '97073-1',
+          display: 'Received COVID-19 vaccine',
+        },
+      ],
+    },
+    subject: {
+      reference: state.transactionBundle.entry
+        .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
+    },
+    encounter: {
+      reference: state.transactionBundle.entry
+        .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+    },
+    effectiveDateTime: dataValue('_submission_time'),
+    valueBoolean: hasReceivedCovidVaccine,
+    extension: observationExtensions,
+  };
+
+  observations.push({
+    request: {
+      method: 'PUT',
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_STATUS`
+    },
+
+    resource: observationResource,
+  });
+
+  if (hasReceivedCovidVaccine === true) {
+    observations.push({
+      request: {
+        method: 'PUT',
+        url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_STATUS_DOSE`
+      },
+
+      resource: {
+        resourceType: 'Observation',
+        identifier: [
+          {
+            use: 'usual',
+            system: 'https://fhir.kemkes.go.id/id/observation',
+            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_STATUS_DOSE`,
+          },
+        ],
+        status: 'final',
+        code: {
+          coding: [
+            {
+              system: 'http://loinc.org',
+              code: '97155-6',
+              display: 'SARS coronavirus 2 (COVID-19) immunization status',
+            },
+          ],
+        },
+        subject: {
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
+        },
+        encounter: {
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+        },
+        effectiveDateTime: dataValue('_submission_time'),
+        valueBoolean: dataValue('vaksin/status_vaksinasi'),
+      },
+    });
+  };
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, ...observations] } };
+});
+
+// Build "Observation" resource, for "Reasons for not accepting COVID-19 vaccine"
+fn(state => {
+
+  let observations = [];
+
+  if (dataValue('vaksin/kenapa_belum')(state) != null) {
+    observations.push({
+      request: {
+        method: 'PUT',
+        url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REASON_FOR_NOT_ACCEPTING`
+      },
+
+      resource: {
+        resourceType: 'Observation',
+        identifier: [
+          {
+            use: 'usual',
+            system: 'https://fhir.kemkes.go.id/id/observation',
+            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REASON_FOR_NOT_ACCEPTING`,
+          },
+        ],
+        status: 'final',
+        code: {
+          coding: [
+            {
+              system: 'http://loinc.org',
+              code: '98173-8',
+              display: 'Reasons for not accepting COVID-19 vaccine',
+            },
+          ],
+        },
+        subject: {
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
+        },
+        encounter: {
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+        },
+        effectiveDateTime: dataValue('_submission_time'),
+        valueString: dataValue('vaksin/kenapa_belum'),
+      },
+    });
+
+    if (dataValue('vaksin/kenapa_belum2')(state) != null) {
+      observations.push({
+        request: {
+          method: 'PUT',
+          url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REASON_FOR_NOT_ACCEPTING_OTHERS`
+        },
+
+        resource: {
+          resourceType: 'Observation',
+          identifier: [
+            {
+              use: 'usual',
+              system: 'https://fhir.kemkes.go.id/id/observation',
+              value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REASON_FOR_NOT_ACCEPTING_OTHERS`,
+            },
+          ],
+          status: 'final',
+          code: {
+            coding: [
+              {
+                system: 'https://sid-indonesia.org/clinical-codes',
+                code: 'reasons-for-not-accepting-covid-19-vaccine-others',
+                display: 'Reasons for not accepting COVID-19 vaccine (others)',
+              },
+            ],
+          },
+          subject: {
+            reference: state.transactionBundle.entry
+              .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
+          },
+          encounter: {
+            reference: state.transactionBundle.entry
+              .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+          },
+          effectiveDateTime: dataValue('_submission_time'),
+          valueString: dataValue('vaksin/kenapa_belum2'),
+        },
+      });
+    }
+  }
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, ...observations] } };
 });
 
 // Build "Observation" resource, for "Vaccine reaction"
@@ -155,18 +376,30 @@ fn(state => {
 
     observations.push({
       request: {
-        method: 'POST',
-        url: 'Observation'
+        method: 'PUT',
+        url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`
       },
 
       resource: {
         resourceType: 'Observation',
+        identifier: [
+          {
+            use: 'usual',
+            system: 'https://fhir.kemkes.go.id/id/observation',
+            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`,
+          },
+        ],
         status: 'final',
         code: {
           coding: [
             {
               system: 'http://loinc.org',
               code: '31044-1',
+              display: 'Immunization reaction',
+            },
+            {
+              system: 'https://sid-indonesia.org/clinical-codes',
+              code: 'immunization-reaction',
               display: 'Immunization reaction',
             },
           ],
@@ -187,19 +420,26 @@ fn(state => {
     if (dataValue('vaksin/efek_samping_vaksin2')(state) != null) {
       observations.push({
         request: {
-          method: 'POST',
-          url: 'Observation'
+          method: 'PUT',
+          url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION_OTHERS`
         },
 
         resource: {
           resourceType: 'Observation',
+          identifier: [
+            {
+              use: 'usual',
+              system: 'https://fhir.kemkes.go.id/id/observation',
+              value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION_OTHERS`,
+            },
+          ],
           status: 'final',
           code: {
             coding: [
               {
                 system: 'https://sid-indonesia.org/clinical-codes',
-                code: 'immunization-reaction',
-                display: 'Immunization reaction',
+                code: 'immunization-reaction-others',
+                display: 'Immunization reaction (others)',
               },
             ],
           },
@@ -230,7 +470,7 @@ fn(state => {
     immunizations.push({
       request: {
         method: 'PUT',
-        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_1`
+        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_DOSE_1`
       },
 
       resource: {
@@ -238,7 +478,7 @@ fn(state => {
         identifier: [
           {
             system: 'https://fhir.kemkes.go.id/id/immunization',
-            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_1`,
+            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_DOSE_1`,
           },
         ],
         status: 'completed',
@@ -287,7 +527,8 @@ fn(state => {
             date: dataValue('vaksin/efek_samping_kapan'),
             detail: {
               reference: state.transactionBundle.entry
-                .find(e => e.resource.resourceType === 'Observation').fullUrl, // same as Observation's `fullurl`
+                .find(e => e.resource.resourceType === 'Observation' && e.resource.code.coding[0].code === '31044-1')
+                .fullUrl, // same as "Immunization reaction" Observation's `fullurl`
             }
           },
         ],
@@ -299,7 +540,7 @@ fn(state => {
     immunizations.push({
       request: {
         method: 'PUT',
-        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_2`
+        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_DOSE_2`
       },
 
       resource: {
@@ -307,7 +548,7 @@ fn(state => {
         identifier: [
           {
             system: 'https://fhir.kemkes.go.id/id/immunization',
-            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_2`,
+            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_DOSE_2`,
           },
         ],
         status: 'completed',
@@ -356,7 +597,8 @@ fn(state => {
             date: dataValue('vaksin/efek_samping_kapan'),
             detail: {
               reference: state.transactionBundle.entry
-                .find(e => e.resource.resourceType === 'Observation').fullUrl, // same as Observation's `fullurl`
+                .find(e => e.resource.resourceType === 'Observation' && e.resource.code.coding[0].code === '31044-1')
+                .fullUrl, // same as "Immunization reaction" Observation's `fullurl`
             }
           },
         ],
@@ -368,7 +610,7 @@ fn(state => {
     immunizations.push({
       request: {
         method: 'PUT',
-        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_3`
+        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_DOSE_3`
       },
 
       resource: {
@@ -376,7 +618,7 @@ fn(state => {
         identifier: [
           {
             system: 'https://fhir.kemkes.go.id/id/immunization',
-            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_3`,
+            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_DOSE_3`,
           },
         ],
         status: 'completed',
@@ -425,7 +667,8 @@ fn(state => {
             date: dataValue('vaksin/efek_samping_kapan'),
             detail: {
               reference: state.transactionBundle.entry
-                .find(e => e.resource.resourceType === 'Observation').fullUrl, // same as Observation's `fullurl`
+                .find(e => e.resource.resourceType === 'Observation' && e.resource.code.coding[0].code === '31044-1')
+                .fullUrl, // same as "Immunization reaction" Observation's `fullurl`
             }
           },
         ],
