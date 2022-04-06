@@ -380,6 +380,7 @@ fn(state => {
     const reactionDateString = reactionDate.toISOString();
 
     observations.push({
+      fullUrl: 'urn:uuid:22991c3d-1b01-4019-aa78-7da464292463',
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`
@@ -540,7 +541,8 @@ fn(state => {
             date: reactionDateString,
             detail: {
               reference: state.transactionBundle.entry
-                .find(e => e.resource.resourceType === 'Observation' && e.resource.code.coding[0].code === '31044-1')
+                .find(e => e.resource.identifier[0].value ===
+                  `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`)
                 .fullUrl, // same as "Immunization reaction" Observation's `fullurl`
             }
           },
@@ -610,7 +612,8 @@ fn(state => {
             date: reactionDateString,
             detail: {
               reference: state.transactionBundle.entry
-                .find(e => e.resource.resourceType === 'Observation' && e.resource.code.coding[0].code === '31044-1')
+                .find(e => e.resource.identifier[0].value ===
+                  `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`)
                 .fullUrl, // same as "Immunization reaction" Observation's `fullurl`
             }
           },
@@ -680,7 +683,8 @@ fn(state => {
             date: reactionDateString,
             detail: {
               reference: state.transactionBundle.entry
-                .find(e => e.resource.resourceType === 'Observation' && e.resource.code.coding[0].code === '31044-1')
+                .find(e => e.resource.identifier[0].value ===
+                  `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`)
                 .fullUrl, // same as "Immunization reaction" Observation's `fullurl`
             }
           },
