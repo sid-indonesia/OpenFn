@@ -61,35 +61,35 @@ fn(state => {
       name: [
         {
           use: 'official',
-          text: dataValue('patient_ID/patient_name')(state),
+          text: dataValue('patient_ID/patient_name'),
         },
       ],
       gender: 'female',
-      birthDate: dataValue('patient_ID/patient_dob')(state),
+      birthDate: dataValue('patient_ID/patient_dob'),
       address: [
         {
           use: 'home',
-          text: dataValue('patient_ID/patient_address')(state),
+          text: dataValue('patient_ID/patient_address'),
         },
       ],
       contact: [
         {
           name: {
             use: 'official',
-            text: dataValue('patient_ID/partner_name')(state),
+            text: dataValue('patient_ID/partner_name'),
           },
           gender: 'male',
           extension: [
             {
               url: 'https://fhir.kemkes.go.id/StructureDefinition/patient-contact-birthDate',
-              valueDate: dataValue('patient_ID/partner_dob')(state),
+              valueDate: dataValue('patient_ID/partner_dob'),
             },
             {
               url: 'https://fhir.kemkes.go.id/StructureDefinition/patient-contact-identifier',
               valueIdentifier: {
                 use: 'usual',
                 system: 'https://fhir.kemkes.go.id/id/nik',
-                value: dataValue('patient_ID/partner_identifier_NIK')(state),
+                value: dataValue('patient_ID/partner_identifier_NIK'),
               },
             },
           ],
@@ -191,7 +191,7 @@ fn(state => {
       status: 'active',
       intent: 'plan',
       title: `${dataValue('anc_visit/visit_date')(state)} ${dataValue('anc_visit/summary')(state)}`,
-      description: dataValue('anc_visit/support_team_action')(state),
+      description: dataValue('anc_visit/support_team_action'),
       subject: {
         reference: state.transactionBundle.entry[1].fullUrl, // same as Patient's `fullurl`
       },
@@ -237,7 +237,7 @@ fn(state => {
       encounter: {
         reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
       },
-      effectiveDateTime: dataValue('anc_visit/visit_date')(state),
+      effectiveDateTime: dataValue('anc_visit/visit_date'),
       valueQuantity: {
         value: Number(dataValue('observations/circumference_mid_upper_arm')(state)),
         unit: 'cm',
@@ -279,7 +279,7 @@ fn(state => {
       encounter: {
         reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
       },
-      effectiveDateTime: dataValue('anc_visit/visit_date')(state),
+      effectiveDateTime: dataValue('anc_visit/visit_date'),
       valueQuantity: {
         value: Number(dataValue('observations/hemoglobin')(state)),
         unit: 'g/dL',
@@ -321,8 +321,8 @@ fn(state => {
       encounter: {
         reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
       },
-      effectiveDateTime: dataValue('anc_visit/visit_date')(state),
-      valueString: dataValue('observations/body_mass_index')(state),
+      effectiveDateTime: dataValue('anc_visit/visit_date'),
+      valueString: dataValue('observations/body_mass_index'),
     },
   };
 
@@ -360,8 +360,8 @@ fn(state => {
       encounter: {
         reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
       },
-      effectiveDateTime: dataValue('anc_visit/visit_date')(state),
-      valueString: dataValue('observations/common_pregnancy_risks')(state),
+      effectiveDateTime: dataValue('anc_visit/visit_date'),
+      valueString: dataValue('observations/common_pregnancy_risks'),
     },
   };
 
@@ -399,8 +399,8 @@ fn(state => {
       encounter: {
         reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
       },
-      effectiveDateTime: dataValue('anc_visit/visit_date')(state),
-      valueString: dataValue('observations/comorbidities')(state),
+      effectiveDateTime: dataValue('anc_visit/visit_date'),
+      valueString: dataValue('observations/comorbidities'),
     },
   };
 
@@ -421,12 +421,12 @@ fn(state => {
 
 // POST the transaction bundle to the FHIR server
 post(
-  `${state.configuration.resource}`,
-  state => ({
-    body: state.transactionBundle, // this `transactionBundle` is `null`...
+  state.configuration.resource,
+  {
+    body: sourceValue('transactionBundle'),
     headers: {
       'Content-Type': 'application/fhir+json',
       'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
-    }, // I saw the headers also not set in the `output.json`...
-  })
+    },
+  }
 );
