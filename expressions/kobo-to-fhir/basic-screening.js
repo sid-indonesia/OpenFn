@@ -42,11 +42,13 @@ fn(state => {
 // Build "Patient" resource
 fn(state => {
 
+  const input = state.data;
+
   const patient = {
     fullUrl: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // will be referenced in many `Observation` resources
     request: {
       method: 'PUT',
-      url: `Patient?identifier=https://fhir.kemkes.go.id/id/nik|${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}`
+      url: `Patient?identifier=https://fhir.kemkes.go.id/id/nik|${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}`
     },
 
     resource: {
@@ -55,24 +57,24 @@ fn(state => {
         {
           use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/nik',
-          value: dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_"),
+          value: input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_"),
         },
       ],
       name: [
         {
           use: 'official',
           given: [
-            dataValue('patient_ID/patient_name'),
+            input['patient_ID/patient_name'],
           ],
-          text: dataValue('patient_ID/patient_name'),
+          text: input['patient_ID/patient_name'],
         },
       ],
       gender: 'female',
-      birthDate: dataValue('patient_ID/patient_dob'),
+      birthDate: input['patient_ID/patient_dob'],
       address: [
         {
           use: 'home',
-          text: dataValue('patient_ID/patient_address'),
+          text: input['patient_ID/patient_address'],
         },
       ],
       contact: [
@@ -80,22 +82,22 @@ fn(state => {
           name: {
             use: 'official',
             given: [
-              dataValue('patient_ID/partner_name'),
+              input['patient_ID/partner_name'],
             ],
-            text: dataValue('patient_ID/partner_name'),
+            text: input['patient_ID/partner_name'],
           },
           gender: 'male',
           extension: [
             {
               url: 'https://fhir.kemkes.go.id/StructureDefinition/patient-contact-birthDate',
-              valueDate: dataValue('patient_ID/partner_dob'),
+              valueDate: input['patient_ID/partner_dob'],
             },
             {
               url: 'https://fhir.kemkes.go.id/StructureDefinition/patient-contact-identifier',
               valueIdentifier: {
                 use: 'usual',
                 system: 'https://fhir.kemkes.go.id/id/nik',
-                value: dataValue('patient_ID/partner_identifier_NIK'),
+                value: input['patient_ID/partner_identifier_NIK'],
               },
             },
           ],
@@ -115,11 +117,13 @@ fn(state => {
 // Build "Encounter" resource
 fn(state => {
 
+  const input = state.data;
+
   const encounter = {
     fullUrl: 'urn:uuid:13c31d68-114c-482a-a5e2-5df2c36a81c8', // will be referenced in many `Observation` resources
     request: {
       method: 'PUT',
-      url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`
+      url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_${input['anc_visit/visit_date']}`
     },
 
     resource: {
@@ -133,7 +137,7 @@ fn(state => {
       identifier: [
         {
           system: 'https://fhir.kemkes.go.id/id/encounter',
-          value: `${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`,
+          value: `${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_${input['anc_visit/visit_date']}`,
         },
       ],
       subject: {
@@ -147,11 +151,14 @@ fn(state => {
 
 // Build "CareTeam" resource
 fn(state => {
+
+  const input = state.data;
+
   const careTeam = {
     fullUrl: 'urn:uuid:a2b4b91a-6c57-4bf1-9002-175a166e863f',
     request: {
       method: 'PUT',
-      url: `CareTeam?identifier=https://fhir.kemkes.go.id/id/hdw|${dataValue('form_ID/district')(state).replace(/ /g, "_")}_${dataValue('form_ID/family_support_team_id')(state).replace(/ /g, "_")}_${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}`,
+      url: `CareTeam?identifier=https://fhir.kemkes.go.id/id/hdw|${input['form_ID/district'].replace(/ /g, "_")}_${input['form_ID/family_support_team_id'].replace(/ /g, "_")}_${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}`,
     },
 
     resource: {
@@ -160,7 +167,7 @@ fn(state => {
         {
           use: 'official',
           system: 'https://fhir.kemkes.go.id/id/hdw',
-          value: `${dataValue('form_ID/district')(state).replace(/ /g, "_")}_${dataValue('form_ID/family_support_team_id')(state).replace(/ /g, "_")}_${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}`,
+          value: `${input['form_ID/district'].replace(/ /g, "_")}_${input['form_ID/family_support_team_id'].replace(/ /g, "_")}_${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}`,
         }
       ],
       status: 'active',
@@ -180,10 +187,13 @@ fn(state => {
 
 // Build "CarePlan" resource
 fn(state => {
+
+  const input = state.data;
+
   const carePlan = {
     request: {
       method: 'PUT',
-      url: `CarePlan?identifier=https://fhir.kemkes.go.id/id/care-plan|${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`,
+      url: `CarePlan?identifier=https://fhir.kemkes.go.id/id/care-plan|${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_${input['anc_visit/visit_date']}`,
     },
 
     resource: {
@@ -191,13 +201,13 @@ fn(state => {
       identifier: [
         {
           system: 'https://fhir.kemkes.go.id/id/care-plan',
-          value: `${dataValue('patient_ID/patient_identifier_NIK')(state).replace(/ /g, "_")}_${dataValue('anc_visit/visit_date')(state)}`,
+          value: `${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_${input['anc_visit/visit_date']}`,
         },
       ],
       status: 'active',
       intent: 'plan',
-      title: `${dataValue('anc_visit/visit_date')(state)} ${dataValue('anc_visit/summary')(state)}`,
-      description: dataValue('anc_visit/support_team_action'),
+      title: `${input['anc_visit/visit_date']} ${input['anc_visit/summary']}`,
+      description: input['anc_visit/support_team_action'],
       subject: {
         reference: state.transactionBundle.entry[1].fullUrl, // same as Patient's `fullurl`
       },
@@ -214,14 +224,23 @@ fn(state => {
 
 // Build "Observation" resource, for "Circumference Mid Upper Arm"
 fn(state => {
+
+  const input = state.data;
+
   const observation = {
     request: {
-      method: 'POST',
-      url: 'Observation'
+      method: 'PUT',
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_CIRCUMFERENCE_MID_UPPER_ARM`
     },
 
     resource: {
       resourceType: 'Observation',
+      identifier: [
+        {
+          system: 'https://fhir.kemkes.go.id/id/observation',
+          value: `${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_CIRCUMFERENCE_MID_UPPER_ARM`,
+        },
+      ],
       status: 'final',
       code: {
         coding: [
@@ -243,9 +262,9 @@ fn(state => {
       encounter: {
         reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
       },
-      effectiveDateTime: dataValue('anc_visit/visit_date'),
+      effectiveDateTime: input['anc_visit/visit_date'],
       valueQuantity: {
-        value: Number(dataValue('observations/circumference_mid_upper_arm')(state)),
+        value: Number(input['observations/circumference_mid_upper_arm']),
         unit: 'cm',
       },
     },
@@ -256,14 +275,23 @@ fn(state => {
 
 // Build "Observation" resource, for "Hemoglobin"
 fn(state => {
+
+  const input = state.data;
+
   const observation = {
     request: {
-      method: 'POST',
-      url: 'Observation'
+      method: 'PUT',
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_HEMOGLOBIN`
     },
 
     resource: {
       resourceType: 'Observation',
+      identifier: [
+        {
+          system: 'https://fhir.kemkes.go.id/id/observation',
+          value: `${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_HEMOGLOBIN`,
+        },
+      ],
       status: 'final',
       code: {
         coding: [
@@ -285,9 +313,9 @@ fn(state => {
       encounter: {
         reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
       },
-      effectiveDateTime: dataValue('anc_visit/visit_date'),
+      effectiveDateTime: input['anc_visit/visit_date'],
       valueQuantity: {
-        value: Number(dataValue('observations/hemoglobin')(state)),
+        value: Number(input['observations/hemoglobin']),
         unit: 'g/dL',
       },
     },
@@ -298,14 +326,23 @@ fn(state => {
 
 // Build "Observation" resource, for "Body Mass Index"
 fn(state => {
+
+  const input = state.data;
+
   const observation = {
     request: {
-      method: 'POST',
-      url: 'Observation'
+      method: 'PUT',
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_BODY_MASS_INDEX`
     },
 
     resource: {
       resourceType: 'Observation',
+      identifier: [
+        {
+          system: 'https://fhir.kemkes.go.id/id/observation',
+          value: `${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_BODY_MASS_INDEX`,
+        },
+      ],
       status: 'final',
       code: {
         coding: [
@@ -327,8 +364,8 @@ fn(state => {
       encounter: {
         reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
       },
-      effectiveDateTime: dataValue('anc_visit/visit_date'),
-      valueString: dataValue('observations/body_mass_index'),
+      effectiveDateTime: input['anc_visit/visit_date'],
+      valueString: input['observations/body_mass_index'],
     },
   };
 
@@ -337,14 +374,23 @@ fn(state => {
 
 // Build "Observation" resource, for "Pregnancy risk factors" or "Resiko 4T"
 fn(state => {
+
+  const input = state.data;
+
   const observation = {
     request: {
-      method: 'POST',
-      url: 'Observation'
+      method: 'PUT',
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_PREGNANCY_RISK_FACTORS`
     },
 
     resource: {
       resourceType: 'Observation',
+      identifier: [
+        {
+          system: 'https://fhir.kemkes.go.id/id/observation',
+          value: `${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_PREGNANCY_RISK_FACTORS`,
+        },
+      ],
       status: 'final',
       code: {
         coding: [
@@ -366,8 +412,8 @@ fn(state => {
       encounter: {
         reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
       },
-      effectiveDateTime: dataValue('anc_visit/visit_date'),
-      valueString: dataValue('observations/common_pregnancy_risks'),
+      effectiveDateTime: input['anc_visit/visit_date'],
+      valueString: input['observations/common_pregnancy_risks'],
     },
   };
 
@@ -376,14 +422,23 @@ fn(state => {
 
 // Build "Observation" resource, for "Comorbidities"
 fn(state => {
+
+  const input = state.data;
+
   const observation = {
     request: {
-      method: 'POST',
-      url: 'Observation'
+      method: 'PUT',
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_COMORBIDITIES`
     },
 
     resource: {
       resourceType: 'Observation',
+      identifier: [
+        {
+          system: 'https://fhir.kemkes.go.id/id/observation',
+          value: `${input['patient_ID/patient_identifier_NIK'].replace(/ /g, "_")}_COMORBIDITIES`,
+        },
+      ],
       status: 'final',
       code: {
         coding: [
@@ -405,8 +460,8 @@ fn(state => {
       encounter: {
         reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
       },
-      effectiveDateTime: dataValue('anc_visit/visit_date'),
-      valueString: dataValue('observations/comorbidities'),
+      effectiveDateTime: input['anc_visit/visit_date'],
+      valueString: input['observations/comorbidities'],
     },
   };
 
