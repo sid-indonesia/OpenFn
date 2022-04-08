@@ -61,6 +61,9 @@ fn(state => {
       name: [
         {
           use: 'official',
+          given: [
+            dataValue('patient_ID/patient_name'),
+          ],
           text: dataValue('patient_ID/patient_name'),
         },
       ],
@@ -76,6 +79,9 @@ fn(state => {
         {
           name: {
             use: 'official',
+            given: [
+              dataValue('patient_ID/partner_name'),
+            ],
             text: dataValue('patient_ID/partner_name'),
           },
           gender: 'male',
