@@ -43,11 +43,13 @@ fn(state => {
 // Build "Patient" resource
 fn(state => {
 
+  const input = state.data;
+
   const patient = {
     fullUrl: 'urn:uuid:0fc374a1-a226-4552-9683-55dd510e67c9', // will be referenced in other resources
     request: {
       method: 'PUT',
-      url: `Patient?identifier=https://fhir.kemkes.go.id/id/nik|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}`
+      url: `Patient?identifier=https://fhir.kemkes.go.id/id/nik|${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}`
     },
 
     resource: {
@@ -56,24 +58,24 @@ fn(state => {
         {
           use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/nik',
-          value: dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_"),
+          value: input['id_pasutri/NIK_bumil'].replace(/ /g, "_"),
         },
       ],
       name: [
         {
           use: 'official',
           given: [
-            dataValue('id_pasutri/nama_bumil'),
+            input['id_pasutri/nama_bumil'],
           ],
-          text: dataValue('id_pasutri/nama_bumil'),
+          text: input['id_pasutri/nama_bumil'],
         },
       ],
       gender: 'female',
-      birthDate: dataValue('id_pasutri/dob_bumil'),
+      birthDate: input['id_pasutri/dob_bumil'],
       address: [
         {
           use: 'home',
-          text: dataValue('id_pasutri/alamat_pasutri'),
+          text: input['id_pasutri/alamat_pasutri'],
         },
       ],
       contact: [
@@ -81,22 +83,22 @@ fn(state => {
           name: {
             use: 'official',
             given: [
-              dataValue('id_pasutri/nama_suami'),
+              input['id_pasutri/nama_suami'],
             ],
-            text: dataValue('id_pasutri/nama_suami'),
+            text: input['id_pasutri/nama_suami'],
           },
           gender: 'male',
           extension: [
             {
               url: 'https://fhir.kemkes.go.id/StructureDefinition/patient-contact-birthDate',
-              valueDate: dataValue('id_pasutri/dob_suami'),
+              valueDate: input['id_pasutri/dob_suami'],
             },
             {
               url: 'https://fhir.kemkes.go.id/StructureDefinition/patient-contact-identifier',
               valueIdentifier: {
                 use: 'usual',
                 system: 'https://fhir.kemkes.go.id/id/nik',
-                value: dataValue('id_pasutri/NIK_suami'),
+                value: input['id_pasutri/NIK_suami'],
               },
             },
           ],
@@ -117,11 +119,13 @@ fn(state => {
 // Build "Encounter" resource
 fn(state => {
 
+  const input = state.data;
+
   const encounter = {
     fullUrl: 'urn:uuid:13c31d68-114c-482a-a5e2-5df2c36a81c8', // will be referenced in other resources
     request: {
       method: 'PUT',
-      url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_STATUS`
+      url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_STATUS`
     },
 
     resource: {
@@ -135,7 +139,7 @@ fn(state => {
       identifier: [
         {
           system: 'https://fhir.kemkes.go.id/id/encounter',
-          value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_STATUS`,
+          value: `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_STATUS`,
         },
       ],
       subject: {
@@ -151,49 +155,51 @@ fn(state => {
 // Build "Observation" resources, for "Received COVID-19 vaccine" and Dosage status
 fn(state => {
 
-  const hasReceivedCovidVaccine = dataValue('vaksin/status_vaksinasi')(state) === 'belum' ? false : true;
+  const input = state.data;
+
+  const hasReceivedCovidVaccine = input['vaksin/status_vaksinasi'] === 'belum' ? false : true;
 
   let observations = [];
 
   let observationExtensions = [
     {
       url: 'https://fhir.kemkes.go.id/StructureDefinition/konsultan-vaksin',
-      valueString: dataValue('vaksin/konsultan_vaksin'),
+      valueString: input['vaksin/konsultan_vaksin'],
     },
   ];
 
-  if (dataValue('vaksin/konsultan_vaksin2')(state) != null) {
+  if (input['vaksin/konsultan_vaksin2'] != null) {
     observationExtensions.push({
       url: 'https://fhir.kemkes.go.id/StructureDefinition/konsultan-vaksin-others',
-      valueString: dataValue('vaksin/konsultan_vaksin2'),
+      valueString: input['vaksin/konsultan_vaksin2'],
     });
   }
 
-  if (dataValue('vaksin/mau_vaksin_apa')(state) != null) {
+  if (input['vaksin/mau_vaksin_apa'] != null) {
     observationExtensions.push({
       url: 'https://fhir.kemkes.go.id/StructureDefinition/varian-vaksin',
-      valueString: dataValue('vaksin/mau_vaksin_apa'),
+      valueString: input['vaksin/mau_vaksin_apa'],
     });
   }
 
-  if (dataValue('vaksin/mau_vaksin_kenapa')(state) != null) {
+  if (input['vaksin/mau_vaksin_kenapa'] != null) {
     observationExtensions.push({
       url: 'https://fhir.kemkes.go.id/StructureDefinition/varian-vaksin-kenapa',
-      valueString: dataValue('vaksin/mau_vaksin_kenapa'),
+      valueString: input['vaksin/mau_vaksin_kenapa'],
     });
   }
 
-  if (dataValue('vaksin/mau_vaksin_kenapa2')(state) != null) {
+  if (input['vaksin/mau_vaksin_kenapa2'] != null) {
     observationExtensions.push({
       url: 'https://fhir.kemkes.go.id/StructureDefinition/varian-vaksin-kenapa-others',
-      valueString: dataValue('vaksin/mau_vaksin_kenapa2'),
+      valueString: input['vaksin/mau_vaksin_kenapa2'],
     });
   }
 
-  if (dataValue('vaksin/pesan_utk_ibu_vaksin')(state) != null) {
+  if (input['vaksin/pesan_utk_ibu_vaksin'] != null) {
     observationExtensions.push({
       url: 'https://fhir.kemkes.go.id/StructureDefinition/pesan-utk-ibu-hamil-vaksin',
-      valueString: dataValue('vaksin/pesan_utk_ibu_vaksin'),
+      valueString: input['vaksin/pesan_utk_ibu_vaksin'],
     });
   }
 
@@ -203,7 +209,7 @@ fn(state => {
       {
         use: 'usual',
         system: 'https://fhir.kemkes.go.id/id/observation',
-        value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_STATUS`,
+        value: `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_STATUS`,
       },
     ],
     status: 'final',
@@ -224,7 +230,7 @@ fn(state => {
       reference: state.transactionBundle.entry
         .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
     },
-    effectiveInstant: dataValue('_submission_time'),
+    effectiveInstant: input['_submission_time'],
     valueBoolean: hasReceivedCovidVaccine,
     extension: observationExtensions,
   };
@@ -232,7 +238,7 @@ fn(state => {
   observations.push({
     request: {
       method: 'PUT',
-      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_STATUS`
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_STATUS`
     },
 
     resource: observationResource,
@@ -242,7 +248,7 @@ fn(state => {
     observations.push({
       request: {
         method: 'PUT',
-        url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_STATUS_DOSE`
+        url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_STATUS_DOSE`
       },
 
       resource: {
@@ -251,7 +257,7 @@ fn(state => {
           {
             use: 'usual',
             system: 'https://fhir.kemkes.go.id/id/observation',
-            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_STATUS_DOSE`,
+            value: `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_STATUS_DOSE`,
           },
         ],
         status: 'final',
@@ -272,8 +278,8 @@ fn(state => {
           reference: state.transactionBundle.entry
             .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
         },
-        effectiveInstant: dataValue('_submission_time'),
-        valueString: dataValue('vaksin/status_vaksinasi'),
+        effectiveInstant: input['_submission_time'],
+        valueString: input['vaksin/status_vaksinasi'],
       },
     });
   }
@@ -284,13 +290,15 @@ fn(state => {
 // Build "Observation" resource, for "Reasons for not accepting COVID-19 vaccine"
 fn(state => {
 
+  const input = state.data;
+
   let observations = [];
 
-  if (dataValue('vaksin/kenapa_belum')(state) != null) {
+  if (input['vaksin/kenapa_belum'] != null) {
     observations.push({
       request: {
         method: 'PUT',
-        url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REASON_FOR_NOT_ACCEPTING`
+        url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_REASON_FOR_NOT_ACCEPTING`
       },
 
       resource: {
@@ -299,7 +307,7 @@ fn(state => {
           {
             use: 'usual',
             system: 'https://fhir.kemkes.go.id/id/observation',
-            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REASON_FOR_NOT_ACCEPTING`,
+            value: `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_REASON_FOR_NOT_ACCEPTING`,
           },
         ],
         status: 'final',
@@ -320,16 +328,16 @@ fn(state => {
           reference: state.transactionBundle.entry
             .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
         },
-        effectiveInstant: dataValue('_submission_time'),
-        valueString: dataValue('vaksin/kenapa_belum'),
+        effectiveInstant: input['_submission_time'],
+        valueString: input['vaksin/kenapa_belum'],
       },
     });
 
-    if (dataValue('vaksin/kenapa_belum2')(state) != null) {
+    if (input['vaksin/kenapa_belum2'] != null) {
       observations.push({
         request: {
           method: 'PUT',
-          url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REASON_FOR_NOT_ACCEPTING_OTHERS`
+          url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_REASON_FOR_NOT_ACCEPTING_OTHERS`
         },
 
         resource: {
@@ -338,7 +346,7 @@ fn(state => {
             {
               use: 'usual',
               system: 'https://fhir.kemkes.go.id/id/observation',
-              value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REASON_FOR_NOT_ACCEPTING_OTHERS`,
+              value: `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_REASON_FOR_NOT_ACCEPTING_OTHERS`,
             },
           ],
           status: 'final',
@@ -359,8 +367,8 @@ fn(state => {
             reference: state.transactionBundle.entry
               .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
           },
-          effectiveInstant: dataValue('_submission_time'),
-          valueString: dataValue('vaksin/kenapa_belum2'),
+          effectiveInstant: input['_submission_time'],
+          valueString: input['vaksin/kenapa_belum2'],
         },
       });
     }
@@ -372,18 +380,20 @@ fn(state => {
 // Build "Observation" resource, for "Vaccine reaction"
 fn(state => {
 
+  const input = state.data;
+
   let observations = [];
 
-  if (dataValue('vaksin/efek_samping_vaksin')(state) != null) {
-    const reactionDate = new Date(dataValue('vaksin/dosis1_kapan')(state));
-    reactionDate.setDate(reactionDate.getDate() + Number(dataValue('vaksin/efek_samping_kapan')(state)));
+  if (input['vaksin/efek_samping_vaksin'] != null) {
+    const reactionDate = new Date(input['vaksin/dosis1_kapan']);
+    reactionDate.setDate(reactionDate.getDate() + Number(input['vaksin/efek_samping_kapan']));
     const reactionDateString = reactionDate.toISOString();
 
     observations.push({
       fullUrl: 'urn:uuid:22991c3d-1b01-4019-aa78-7da464292463',
       request: {
         method: 'PUT',
-        url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`
+        url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`
       },
 
       resource: {
@@ -392,7 +402,7 @@ fn(state => {
           {
             use: 'usual',
             system: 'https://fhir.kemkes.go.id/id/observation',
-            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`,
+            value: `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`,
           },
         ],
         status: 'final',
@@ -419,15 +429,15 @@ fn(state => {
             .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
         },
         effectiveDateTime: reactionDateString,
-        valueString: dataValue('vaksin/efek_samping_vaksin'),
+        valueString: input['vaksin/efek_samping_vaksin'],
       },
     });
 
-    if (dataValue('vaksin/efek_samping_vaksin2')(state) != null) {
+    if (input['vaksin/efek_samping_vaksin2'] != null) {
       observations.push({
         request: {
           method: 'PUT',
-          url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION_OTHERS`
+          url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_REACTION_OTHERS`
         },
 
         resource: {
@@ -436,7 +446,7 @@ fn(state => {
             {
               use: 'usual',
               system: 'https://fhir.kemkes.go.id/id/observation',
-              value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION_OTHERS`,
+              value: `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_REACTION_OTHERS`,
             },
           ],
           status: 'final',
@@ -458,7 +468,7 @@ fn(state => {
               .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
           },
           effectiveDateTime: reactionDateString,
-          valueString: dataValue('vaksin/efek_samping_vaksin2'),
+          valueString: input['vaksin/efek_samping_vaksin2'],
         },
       });
     }
@@ -470,21 +480,23 @@ fn(state => {
 // Build "Immunization" resource
 fn(state => {
 
+  const input = state.data;
+
   let immunizations = [];
 
   let reactionDateString;
 
-  if (dataValue('vaksin/dosis1_kapan')(state) != null) {
-    const reactionDate = new Date(dataValue('vaksin/dosis1_kapan')(state));
-    reactionDate.setDate(reactionDate.getDate() + Number(dataValue('vaksin/efek_samping_kapan')(state)));
+  if (input['vaksin/dosis1_kapan'] != null) {
+    const reactionDate = new Date(input['vaksin/dosis1_kapan']);
+    reactionDate.setDate(reactionDate.getDate() + Number(input['vaksin/efek_samping_kapan']));
     reactionDateString = reactionDate.toISOString();
   }
 
-  if (dataValue('vaksin/dosis1_apa')(state) != null) {
+  if (input['vaksin/dosis1_apa'] != null) {
     immunizations.push({
       request: {
         method: 'PUT',
-        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_DOSE_1`
+        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_DOSE_1`
       },
 
       resource: {
@@ -492,7 +504,7 @@ fn(state => {
         identifier: [
           {
             system: 'https://fhir.kemkes.go.id/id/immunization',
-            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_DOSE_1`,
+            value: `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_DOSE_1`,
           },
         ],
         status: 'completed',
@@ -500,12 +512,12 @@ fn(state => {
           coding: [
             {
               system: 'https://fhir.kemkes.go.id/id/vaccine',
-              code: `COVID19_${dataValue('vaksin/dosis1_apa')(state)}`,
-              display: `Covid-19 vaccine, brand: ${dataValue('vaksin/dosis1_apa')(state)}`,
+              code: `COVID19_${input['vaksin/dosis1_apa']}`,
+              display: `Covid-19 vaccine, brand: ${input['vaksin/dosis1_apa']}`,
             },
           ],
         },
-        occurrenceDateTime: dataValue('vaksin/dosis1_kapan'),
+        occurrenceDateTime: input['vaksin/dosis1_kapan'],
         patient: {
           reference: state.transactionBundle.entry
             .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
@@ -542,7 +554,7 @@ fn(state => {
             detail: {
               reference: state.transactionBundle.entry
                 .find(e => e.resource.identifier[0].value ===
-                  `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`)
+                  `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`)
                 .fullUrl, // same as "Immunization reaction" Observation's `fullurl`
             }
           },
@@ -551,11 +563,11 @@ fn(state => {
     });
   }
 
-  if (dataValue('vaksin/dosis2_apa')(state) != null) {
+  if (input['vaksin/dosis2_apa'] != null) {
     immunizations.push({
       request: {
         method: 'PUT',
-        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_DOSE_2`
+        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_DOSE_2`
       },
 
       resource: {
@@ -563,7 +575,7 @@ fn(state => {
         identifier: [
           {
             system: 'https://fhir.kemkes.go.id/id/immunization',
-            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_DOSE_2`,
+            value: `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_DOSE_2`,
           },
         ],
         status: 'completed',
@@ -571,12 +583,12 @@ fn(state => {
           coding: [
             {
               system: 'https://fhir.kemkes.go.id/id/vaccine',
-              code: `COVID19_${dataValue('vaksin/dosis2_apa')(state)}`,
-              display: `Covid-19 vaccine, brand: ${dataValue('vaksin/dosis2_apa')(state)}`,
+              code: `COVID19_${input['vaksin/dosis2_apa']}`,
+              display: `Covid-19 vaccine, brand: ${input['vaksin/dosis2_apa']}`,
             },
           ],
         },
-        occurrenceDateTime: dataValue('vaksin/dosis2_kapan'),
+        occurrenceDateTime: input['vaksin/dosis2_kapan'],
         patient: {
           reference: state.transactionBundle.entry
             .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
@@ -613,7 +625,7 @@ fn(state => {
             detail: {
               reference: state.transactionBundle.entry
                 .find(e => e.resource.identifier[0].value ===
-                  `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`)
+                  `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`)
                 .fullUrl, // same as "Immunization reaction" Observation's `fullurl`
             }
           },
@@ -622,11 +634,11 @@ fn(state => {
     });
   }
 
-  if (dataValue('vaksin/dosis3_apa')(state) != null) {
+  if (input['vaksin/dosis3_apa'] != null) {
     immunizations.push({
       request: {
         method: 'PUT',
-        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_DOSE_3`
+        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_DOSE_3`
       },
 
       resource: {
@@ -634,7 +646,7 @@ fn(state => {
         identifier: [
           {
             system: 'https://fhir.kemkes.go.id/id/immunization',
-            value: `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_DOSE_3`,
+            value: `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_DOSE_3`,
           },
         ],
         status: 'completed',
@@ -642,12 +654,12 @@ fn(state => {
           coding: [
             {
               system: 'https://fhir.kemkes.go.id/id/vaccine',
-              code: `COVID19_${dataValue('vaksin/dosis3_apa')(state)}`,
-              display: `Covid-19 vaccine, brand: ${dataValue('vaksin/dosis3_apa')(state)}`,
+              code: `COVID19_${input['vaksin/dosis3_apa']}`,
+              display: `Covid-19 vaccine, brand: ${input['vaksin/dosis3_apa']}`,
             },
           ],
         },
-        occurrenceDateTime: dataValue('vaksin/dosis3_kapan'),
+        occurrenceDateTime: input['vaksin/dosis3_kapan'],
         patient: {
           reference: state.transactionBundle.entry
             .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
@@ -684,7 +696,7 @@ fn(state => {
             detail: {
               reference: state.transactionBundle.entry
                 .find(e => e.resource.identifier[0].value ===
-                  `${dataValue('id_pasutri/NIK_bumil')(state).replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`)
+                  `${input['id_pasutri/NIK_bumil'].replace(/ /g, "_")}_COVID19_VACCINATION_REACTION`)
                 .fullUrl, // same as "Immunization reaction" Observation's `fullurl`
             }
           },

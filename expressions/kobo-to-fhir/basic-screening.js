@@ -105,7 +105,8 @@ fn(state => {
       ],
       managingOrganization: [
         {
-          reference: state.transactionBundle.entry[0].fullUrl, // same as "BKKBN" Organization's `fullurl`
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.identifier[0].value === 'BKKBN').fullUrl, // same as "BKKBN" Organization's `fullurl`
         },
       ],
     },
@@ -141,7 +142,8 @@ fn(state => {
         },
       ],
       subject: {
-        reference: state.transactionBundle.entry[1].fullUrl, // same as Patient's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
       },
     },
   };
@@ -172,11 +174,13 @@ fn(state => {
       ],
       status: 'active',
       subject: {
-        reference: state.transactionBundle.entry[1].fullUrl, // same as Patient's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
       },
       managingOrganization: [
         {
-          reference: state.transactionBundle.entry[0].fullUrl, // same as "BKKBN" Organization's `fullurl`
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.identifier[0].value === 'BKKBN').fullUrl, // same as "BKKBN" Organization's `fullurl`
         },
       ],
     },
@@ -209,11 +213,13 @@ fn(state => {
       title: `${input['anc_visit/visit_date']} ${input['anc_visit/summary']}`,
       description: input['anc_visit/support_team_action'],
       subject: {
-        reference: state.transactionBundle.entry[1].fullUrl, // same as Patient's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
       },
       careTeam: [
         {
-          reference: state.transactionBundle.entry[3].fullUrl, // same as CareTeam's `fullurl`
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'CareTeam').fullUrl, // same as CareTeam's `fullurl`
         },
       ],
     },
@@ -257,10 +263,12 @@ fn(state => {
         ],
       },
       subject: {
-        reference: state.transactionBundle.entry[1].fullUrl, // same as Patient's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
       },
       encounter: {
-        reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
       },
       effectiveDateTime: input['anc_visit/visit_date'],
       valueQuantity: {
@@ -308,10 +316,12 @@ fn(state => {
         ],
       },
       subject: {
-        reference: state.transactionBundle.entry[1].fullUrl, // same as Patient's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
       },
       encounter: {
-        reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
       },
       effectiveDateTime: input['anc_visit/visit_date'],
       valueQuantity: {
@@ -359,10 +369,12 @@ fn(state => {
         ],
       },
       subject: {
-        reference: state.transactionBundle.entry[1].fullUrl, // same as Patient's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
       },
       encounter: {
-        reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
       },
       effectiveDateTime: input['anc_visit/visit_date'],
       valueString: input['observations/body_mass_index'],
@@ -407,10 +419,12 @@ fn(state => {
         ],
       },
       subject: {
-        reference: state.transactionBundle.entry[1].fullUrl, // same as Patient's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
       },
       encounter: {
-        reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
       },
       effectiveDateTime: input['anc_visit/visit_date'],
       valueString: input['observations/common_pregnancy_risks'],
@@ -455,10 +469,12 @@ fn(state => {
         ],
       },
       subject: {
-        reference: state.transactionBundle.entry[1].fullUrl, // same as Patient's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Patient').fullUrl, // same as Patient's `fullurl`
       },
       encounter: {
-        reference: state.transactionBundle.entry[2].fullUrl, // same as Encounter's `fullurl`
+        reference: state.transactionBundle.entry
+          .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
       },
       effectiveDateTime: input['anc_visit/visit_date'],
       valueString: input['observations/comorbidities'],
