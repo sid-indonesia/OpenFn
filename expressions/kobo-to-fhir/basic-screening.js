@@ -1,3 +1,9 @@
+/*
+  Data transformation script
+  from KoBo form "[FHIR] Skrining Ibu Hamil"
+  to FHIR resources and POST them to a FHIR server
+*/
+
 // Build "Organization" resource
 fn(state => {
 
