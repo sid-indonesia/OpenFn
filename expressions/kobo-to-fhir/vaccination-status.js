@@ -1,3 +1,9 @@
+/*
+  Data transformation script
+  from KoBo form "[FHIR] Status Vaksinasi COVID-19"
+  to FHIR resources and POST them to a FHIR server
+*/
+
 // Build "Organization" resource, will be referenced in other resources
 fn(state => {
 
