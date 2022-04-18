@@ -4,6 +4,8 @@
   to FHIR resources and POST them to a FHIR server
 */
 
+console.log(sourceValue("configuration"));
+
 // Build "Organization" resource
 fn(state => {
 
