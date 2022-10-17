@@ -12,17 +12,7 @@ sql(state =>
         ELSE cdv."firstName" || ' ' || cdv."lastName"
     END AS "customer_name",
     'Bunda App' AS "company",
-    -- cdv."baseEntityId",
-    -- cdv."attributes.alt_phone_number" AS "alternateContactPhoneNumber",
-    -- cdv."attributes.next_contact_date",
     cdv."attributes.next_contact" AS "next_contact"
-    -- ,
-    -- cdv."dateCreated",
-    -- cdv."attributes.edd",
-    -- cdv."attributes.last_contact_record_date",
-    -- cdv."identifiers.ANC_ID",
-    -- earv.id AS "eventId",
-    -- earv."providerId"
   FROM
     core.client_detailed_view cdv
   LEFT JOIN core."event_ANC Registration_view" earv ON
