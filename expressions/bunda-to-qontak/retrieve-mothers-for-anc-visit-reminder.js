@@ -1,21 +1,28 @@
 sql(state =>
   `SELECT
-    '62' || substring((earv."obs.phone_number.values"::jsonb) ->> 0, 2) AS "mobilePhoneNumber",
+    '62' || substring((earv."obs.phone_number.values"::jsonb) ->> 0, 2) AS "phone_number",
     CASE
         WHEN (cdv."firstName" = cdv."lastName")
     THEN cdv."firstName"
         ELSE cdv."firstName" || ' ' || cdv."lastName"
-    END AS "fullName",
-    cdv."baseEntityId",
-    cdv."attributes.alt_phone_number" AS "alternateContactPhoneNumber",
-    cdv."attributes.next_contact_date",
-    cdv."attributes.next_contact",
-    cdv."dateCreated",
-    cdv."attributes.edd",
-    cdv."attributes.last_contact_record_date",
-    cdv."identifiers.ANC_ID",
-    earv.id AS "eventId",
-    earv."providerId"
+    END AS "full_name",
+    CASE
+        WHEN (cdv."firstName" = cdv."lastName")
+    THEN cdv."firstName"
+        ELSE cdv."firstName" || ' ' || cdv."lastName"
+    END AS "customer_name",
+    'Bunda App' AS "company",
+    -- cdv."baseEntityId",
+    -- cdv."attributes.alt_phone_number" AS "alternateContactPhoneNumber",
+    -- cdv."attributes.next_contact_date",
+    cdv."attributes.next_contact" AS "next_contact"
+    -- ,
+    -- cdv."dateCreated",
+    -- cdv."attributes.edd",
+    -- cdv."attributes.last_contact_record_date",
+    -- cdv."identifiers.ANC_ID",
+    -- earv.id AS "eventId",
+    -- earv."providerId"
   FROM
     core.client_detailed_view cdv
   LEFT JOIN core."event_ANC Registration_view" earv ON
@@ -44,6 +51,16 @@ sql(state =>
         ELSE TRUE
     END);`,
   {
-    writeSql: true
+    writeSql: false,
+    execute: true
   }
 );
+
+fn(state => {
+  // if not empty, return state
+  if (state.response.body.rows.length) {
+    return state;
+  } else {
+    throw new Error("`response.body.rows` is empty (no new data)");
+  }
+});

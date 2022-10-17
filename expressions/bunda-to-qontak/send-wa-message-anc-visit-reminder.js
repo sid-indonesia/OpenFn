@@ -11,7 +11,7 @@ fn(async state => {
         body: {
           "name": "Test OpenFn",
           "message_template_id": `${state.configuration.qontak.testMessageTemplateId}`,
-          "contact_list_id": `${state.configuration.qontak.contactListId}`,
+          "contact_list_id": `${state.data.contactListId}`,
           "channel_integration_id": `${state.configuration.qontak.whatsAppChannelIntegrationId}`,
           "parameters": {
             "body": [
@@ -126,6 +126,48 @@ fn(async state => {
 
 
 
+  function createCSV(data) {
+    // get keys as array
+    const keys = Object.keys(data[0]);
+    // const keys = ["phone_number", "full_name", "customer_name", "company", "next_contact"];
+
+    const commaSeparatedString = [
+      keys.join(","),
+      data.map(row =>
+        keys.map(key =>
+          row[key]
+        ).join(",")
+      ).join("\n")
+    ].join("\n");
+
+    return new Blob([commaSeparatedString], { type: 'text/csv' });
+  }
+
+
+
+  const mothers = state.response.body.rows;
+
+  // Create campaignName var
+  const campaignName = new Date().toISOString() + " Bunda App (" + jobName + ")";
+
+  // Hit Qontak's API "Create contact list asynchronously", get contact_list_id
+  const formData = new FormData();
+  formData.append("name", campaignName);
+  formData.append("source_type", "spreadsheet");
+  formData.append("file", createCSV(mothers));
+
+  const contactListId = await post(`${state.configuration.qontak.baseUrl}/v1/contacts/contact_lists/async`, {
+    body: formData,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `${state.configuration.qontak.tokenType} ${state.configuration.qontak.accessToken}`
+    }
+  })(state);
+  state.data = { ...state.data, contactListId: contactListId };
+
+  // Try retrieve Contact List by ID until `progress` equalsTo `success`
+
+  // Broadcast Bulk with retries if 429
   const tokenBucket = new TokenBucketRateLimiter({
     maxRequests: state.configuration.qontak.broadcastBulk.maxRequests,
     maxRequestWindowMS: state.configuration.qontak.broadcastBulk.maxRequestsWindowMS
@@ -138,7 +180,7 @@ fn(async state => {
     ), 0, index)
   ));
 
-  let finalStates = await Promise.all(promises);
+  const finalStates = await Promise.all(promises);
 
   return finalStates[0];
 });
