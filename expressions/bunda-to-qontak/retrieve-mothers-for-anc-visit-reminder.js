@@ -1,32 +1,34 @@
 sql(state =>
   `SELECT
-    '62' || substring((earv."obs.phone_number.values"::jsonb) ->> 0, 2) AS "phone_number",
+    '62' || substring((anc_registration."obs.phone_number.values"::jsonb) ->> 0, 2) AS "phone_number",
     CASE
-        WHEN (cdv."firstName" = cdv."lastName")
-    THEN cdv."firstName"
-        ELSE cdv."firstName" || ' ' || cdv."lastName"
+        WHEN (the_mother."firstName" = the_mother."lastName")
+    THEN the_mother."firstName"
+        ELSE the_mother."firstName" || ' ' || the_mother."lastName"
     END AS "full_name",
     CASE
-        WHEN (cdv."firstName" = cdv."lastName")
-    THEN cdv."firstName"
-        ELSE cdv."firstName" || ' ' || cdv."lastName"
+        WHEN (the_mother."firstName" = the_mother."lastName")
+    THEN the_mother."firstName"
+        ELSE the_mother."firstName" || ' ' || the_mother."lastName"
     END AS "customer_name",
     'Bunda App' AS "company",
-    cdv."attributes.next_contact" AS "next_contact"
+    the_mother."attributes.next_contact" AS "next_contact"
   FROM
-    core.client_detailed_view cdv
-  LEFT JOIN core."event_ANC Registration_view" earv ON
-    cdv."baseEntityId" = earv."baseEntityId"
+    core.client_detailed_view the_mother
+  LEFT JOIN core."event_ANC Registration_view" anc_registration ON
+    the_mother."baseEntityId" = anc_registration."baseEntityId"
   WHERE
-    cdv."attributes.next_contact_date"::date = current_date + INTERVAL '${state.configuration.databaseBunda.ancVisitReminder.intervalInDays} day'
+    the_mother."attributes.next_contact_date"::date = current_date + INTERVAL '${state.configuration.databaseBunda.ancVisitReminder.intervalInDays} day'
     AND
-    cdv."attributes.next_contact_date" != '-0001-04-24'
+    the_mother."attributes.next_contact_date" != '-0001-04-24'
     AND
-    (earv."obs.phone_number.values"::jsonb) ->> 0 IS NOT NULL
+    anc_registration."obs.phone_number.values"::jsonb ->> 0 IS NOT NULL
     AND
-    (earv."obs.phone_number.values"::jsonb) ->> 0 != '0'
+    anc_registration."obs.phone_number.values"::jsonb ->> 0 != '0'
     AND
-    (earv."obs.reminders.humanReadableValues"::jsonb) ->> 0 ILIKE 'yes'
+    anc_registration."obs.phone_number.values"::jsonb ->> 0 !~ '^000*'
+    AND
+    anc_registration."obs.reminders.humanReadableValues"::jsonb ->> 0 ILIKE 'yes'
     AND 
     (CASE
         WHEN (EXISTS (
@@ -35,7 +37,7 @@ sql(state =>
         FROM
             core."event_ANC Close_view" eacv
         WHERE
-            eacv."baseEntityId" = cdv."baseEntityId")
+            eacv."baseEntityId" = the_mother."baseEntityId")
         )
         THEN FALSE
         ELSE TRUE
