@@ -43,15 +43,13 @@ fn(async state => {
 
   state.contactListId = state.data.data.id;
 
-  // Try retrieve Contact List by ID until `progress` equalsTo`success`
-
   // Give Qontak some time to process the contact list (because the API is
   // asynchronous and currently there is no "Create contact list synchronously")
-  await sleep(state.configuration.qontak.contactListAPI.initialDelayMS); // give initial 10 seconds
+  await sleep(state.configuration.qontak.contactListAPI.initialDelayMS);
 
-  const maxRetries = state.configuration.qontak.contactListAPI.maxRetries;
-  for (let i = 0; i < maxRetries; i++) {
+  for (let i = 0; i < state.configuration.qontak.contactListAPI.maxRetries; i++) {
     try {
+      // Try retrieve Contact List by ID until `progress` equalTo `success`
       const contactListFinalState = await get(`${state.configuration.qontak.baseUrl}/v1/contacts/contact_lists/${state.contactListId}`, {
         headers: {
           'Authorization': `${state.configuration.qontak.tokenType} ${state.configuration.qontak.accessToken}`
