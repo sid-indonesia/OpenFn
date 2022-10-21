@@ -1,6 +1,6 @@
 fn(state => {
-  const jobName = state.configuration.qontak.ancVisitReminder.jobName;
-  const csvAbsoluteFileName = state.configuration.qontak.ancVisitReminder.contactListCSVAbsoluteFileName;
+  const jobName = state.configuration.qontak.healthEducation.jobName;
+  const csvAbsoluteFileName = state.configuration.qontak.healthEducation.contactListCSVAbsoluteFileName;
 
   return qontakCreateContactList(state, csvAbsoluteFileName, jobName);
 });
@@ -8,7 +8,7 @@ fn(state => {
 fn(state => {
   const requestBody = {
     "name": state.campaignName,
-    "message_template_id": state.configuration.qontak.ancVisitReminder.messageTemplateId,
+    "message_template_id": state.configuration.qontak.healthEducation.messageTemplateId,
     "contact_list_id": state.contactListId,
     "channel_integration_id": state.configuration.qontak.whatsAppChannelIntegrationId,
     "parameters": {
@@ -19,12 +19,16 @@ fn(state => {
         },
         {
           "key": "2",
-          "value": "next_contact"
+          "value": "pregna_trimester"
+        },
+        {
+          "key": "3",
+          "value": "calc_gestational"
         }
       ]
     }
   }
-  const jobName = state.configuration.qontak.ancVisitReminder.jobName;
+  const jobName = state.configuration.qontak.healthEducation.jobName;
 
   return qontakBroadcastBulk(state, requestBody, jobName);
 });
