@@ -35,9 +35,9 @@ sql(state =>
         SELECT
             1
         FROM
-            core."event_ANC Close_view" eacv
+            core."event_ANC Close_view" anc_close
         WHERE
-            eacv."baseEntityId" = the_mother."baseEntityId")
+            anc_close."baseEntityId" = the_mother."baseEntityId")
         )
         THEN FALSE
         ELSE TRUE
