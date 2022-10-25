@@ -23,7 +23,7 @@ fn(state => {
         }
       ]
     }
-  }
+  };
   const jobName = state.configuration.qontak.ancVisitReminder.jobName;
 
   return qontakBroadcastBulk(state, requestBody, jobName);

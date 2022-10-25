@@ -26,7 +26,11 @@ sql(state =>
     AND
     anc_registration."obs.phone_number.values"::jsonb ->> 0 != '0'
     AND
+    anc_registration."obs.phone_number.values"::jsonb ->> 0 != '999'
+    AND
     anc_registration."obs.phone_number.values"::jsonb ->> 0 !~ '^000*'
+    AND
+    length(anc_registration."obs.phone_number.values"::jsonb ->> 0) >= 10
     AND
     anc_registration."obs.reminders.humanReadableValues"::jsonb ->> 0 ILIKE 'yes'
     AND 

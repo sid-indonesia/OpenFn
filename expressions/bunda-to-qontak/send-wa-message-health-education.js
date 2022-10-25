@@ -27,7 +27,7 @@ fn(state => {
         }
       ]
     }
-  }
+  };
   const jobName = state.configuration.qontak.healthEducation.jobName;
 
   return qontakBroadcastBulk(state, requestBody, jobName);
