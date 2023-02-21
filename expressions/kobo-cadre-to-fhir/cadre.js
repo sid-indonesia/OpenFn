@@ -54,7 +54,6 @@ fn(state => {
 
   const relatedPersonResourceMother = {
     resourceType: "RelatedPerson",
-    active: true,
     patient: {
       type: 'Patient',
       reference: 'urn:uuid:patient-baby',
@@ -167,6 +166,16 @@ fn(state => {
     relatedPersonResourceMother['telecom'] = patientResourceMother['telecom'];
   }
 
+  const relatedPersonMother = {
+    fullUrl: 'urn:uuid:related-person-mother', // will be referenced in other resources
+    request: {
+      method: 'PUT',
+      url: `RelatedPerson?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|${input['group_gr5be69/Nama_Ibu'].replace(/ /g, "_")}-${input['id_balita/nama_balita'].replace(/ /g, "_")}`
+    },
+
+    resource: relatedPersonResourceMother
+  };
+
   const patientMother = {
     fullUrl: 'urn:uuid:patient-mother', // will be referenced in other resources
     request: {
@@ -177,7 +186,7 @@ fn(state => {
     resource: patientResourceMother
   };
 
-  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, patientMother] } };
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, relatedPersonMother, patientMother] } };
 });
 
 // Build "Patient" resource for the baby
