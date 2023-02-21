@@ -54,6 +54,13 @@ fn(state => {
 
   const relatedPersonResourceMother = {
     resourceType: "RelatedPerson",
+    identifier: [
+      {
+        use: 'temp',
+        system: 'https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name',
+        value: `${input['group_gr5be69/Nama_Ibu'].replace(/ /g, "_")}-${input['id_balita/nama_balita'].replace(/ /g, "_")}`,
+      },
+    ],
     patient: {
       type: 'Patient',
       reference: 'urn:uuid:patient-baby',
