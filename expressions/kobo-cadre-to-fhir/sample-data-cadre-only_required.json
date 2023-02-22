@@ -1,36 +1,13 @@
 {
     "id_balita/dob_balita": "2023-01-01",
-    "end": "2023-02-21T11:33:21.141+07:00",
     "group_gr5be69/Alamat": "Jalan Test",
-    "_xform_id_string": "a3ETTKwLPPrKJHXoz7XuqP",
-    "_submission_time": "2023-02-21T04:33:25",
     "group_yp32g51/Silahkan_pilih_salah_satu_nama": "buwuh",
-    "__query_params": {},
-    "meta/instanceID": "uuid:5f93bd32-213d-42be-affa-9d565b0ef3ff",
     "group_yp32g51/Nama_Kader": "Test",
-    "_id": 60678,
-    "__version__": "vbtpoWMLYSjjLXZcDtmMnw",
     "group_gr5be69/Nama_Ibu": "Test Ibu Hamil",
-    "_uuid": "5f93bd32-213d-42be-affa-9d565b0ef3ff",
     "id_balita/months": "1",
     "id_balita/nama_balita": "Test Bayi",
-    "_submitted_by": null,
-    "_version_": "vijnucjtbUkNJES3MYv9MR",
-    "_tags": [],
     "group_yp32g51/Desa": "mambalan",
-    "_notes": [],
-    "formhub/uuid": "ea89735ac2a741ef9569d60184bede6b",
     "group_ho1bh03/Tanggal_Posyandu": "2023-02-20",
     "group_yp32g51/Kecamatan": "Gunung Sari",
-    "_validation_status": {},
-    "_geolocation": [
-        null,
-        null
-    ],
-    "_version__001": "vFLLce8ytvZyE6nLw9Yy5q",
-    "start": "2023-02-21T09:55:32.065+07:00",
-    "_attachments": [],
-    "group_ho1bh03/Apakah_bayi_balita_m_mbahan_saat_posyandu": "tidak",
-    "form": "lalala",
-    "_status": "submitted_via_web"
+    "group_ho1bh03/Apakah_bayi_balita_m_mbahan_saat_posyandu": "tidak"
 }
