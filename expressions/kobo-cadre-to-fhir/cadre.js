@@ -26,6 +26,7 @@ fn(state => {
     relatedPersonMother: 'urn:uuid:related-person-mother',
     patientMother: 'urn:uuid:patient-mother',
     practitionerCadre: 'urn:uuid:practitioner-cadre',
+    locationKecamatan: 'urn:uuid:location-kecamatan',
     locationDesa: 'urn:uuid:location-desa',
     locationDusun: 'urn:uuid:location-dusun',
     encounterPosyandu: 'urn:uuid:encounter-posyandu',
@@ -33,6 +34,7 @@ fn(state => {
 
   const input = state.data;
   state.inputKey = {
+    kecamatanName: 'group_yp32g51/Kecamatan',
     desaName: 'group_yp32g51/Desa',
     dusunName: Object.keys(input).find(key => key.startsWith('group_yp32g51/Silahkan_pilih_')),
     cadreName: 'group_yp32g51/Nama_Kader',
@@ -346,11 +348,34 @@ fn(state => {
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, practitionerCadre] } };
 });
 
-// Build "Location" resources for "Desa" and "Dusun"
+// Build "Location" resources for "Kecamatan", "Desa" and "Dusun"
 fn(state => {
 
   const input = state.data;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+  const locationResourceKecamatan = {
+    resourceType: 'Location',
+    identifier: [
+      {
+        use: 'temp',
+        system: 'https://fhir.kemkes.go.id/id/temp-identifier-kecamatan-name',
+        value: `${trimSpacesTitleCase(input[state.inputKey.kecamatanName]).replace(/ /g, "_")}`,
+      },
+    ],
+    name: trimSpacesTitleCase(input[state.inputKey.kecamatanName]),
+  };
+
+  const locationKecamatan = {
+    fullUrl: state.temporaryFullUrl.locationKecamatan, // will be referenced in other resources
+    request: {
+      method: 'PUT',
+      url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-kecamatan-name|` +
+        `${trimSpacesTitleCase(input[state.inputKey.kecamatanName]).replace(/ /g, "_")}`
+    },
+
+    resource: locationResourceKecamatan
+  };
 
   const locationResourceDesa = {
     resourceType: 'Location',
@@ -362,6 +387,10 @@ fn(state => {
       },
     ],
     name: trimSpacesTitleCase(input[state.inputKey.desaName]),
+    partOf: {
+      type: "Location",
+      reference: state.temporaryFullUrl.locationKecamatan,
+    }
   };
 
   const locationDesa = {
@@ -406,7 +435,12 @@ fn(state => {
     resource: locationResourceDusun
   };
 
-  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, locationDesa, locationDusun] } };
+  return {
+    ...state, transactionBundle: {
+      entry: [...state.transactionBundle.entry,
+        locationKecamatan, locationDesa, locationDusun]
+    }
+  };
 });
 
 // Build "Encounter" resource
