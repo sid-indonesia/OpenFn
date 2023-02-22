@@ -4,6 +4,36 @@
   to FHIR resources and POST them to a FHIR server
 */
 
+// Add common variables and functions here
+// Do not forget to remove them later from the `state` before actions
+fn(state => {
+  state.commonFunctions = {
+
+    trimSpacesTitleCase: (string) => {
+      const cleanString = string.replace(/\s+/g, " "); // Remove extra spaces
+      let sentence = cleanString.split(" ");
+      for (let i = 0; i < sentence.length; i++) {
+        sentence[i] = sentence[i][0].toUpperCase() + sentence[i].slice(1);
+      }
+
+      return sentence.join(" ");
+    }
+
+  }
+
+  state.temporaryFullUrl = {
+    patientBaby: 'urn:uuid:patient-baby',
+    relatedPersonMother: 'urn:uuid:related-person-mother',
+    patientMother: 'urn:uuid:patient-mother',
+    practitionerCadre: 'urn:uuid:practitioner-cadre',
+    locationDesa: 'urn:uuid:location-desa',
+    locationDusun: 'urn:uuid:location-dusun',
+    encounterPosyandu: 'urn:uuid:encounter-posyandu',
+  }
+
+  return state;
+});
+
 // Build "Organization" resource, will be referenced in other resources
 fn(state => {
 
@@ -51,6 +81,7 @@ fn(state => {
 fn(state => {
 
   const input = state.data;
+  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const relatedPersonResourceMother = {
     resourceType: "RelatedPerson",
@@ -58,12 +89,14 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name',
-        value: `${input['group_gr5be69/Nama_Ibu'].replace(/ /g, "_")}-${input['id_balita/nama_balita'].replace(/ /g, "_")}`,
+        value: `${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}\
+          -\
+          ${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}`,
       },
     ],
     patient: {
       type: 'Patient',
-      reference: 'urn:uuid:patient-baby',
+      reference: state.temporaryFullUrl.patientBaby,
     },
     relationship: [
       {
@@ -80,7 +113,7 @@ fn(state => {
     name: [
       {
         use: 'official',
-        text: input['group_gr5be69/Nama_Ibu'],
+        text: trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']),
       },
     ],
     gender: 'female',
@@ -98,13 +131,15 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name',
-        value: `${input['group_gr5be69/Nama_Ibu'].replace(/ /g, "_")}-${input['id_balita/nama_balita'].replace(/ /g, "_")}`,
+        value: `${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}\
+          -\
+          ${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}`,
       },
     ],
     name: [
       {
         use: 'official',
-        text: input['group_gr5be69/Nama_Ibu'],
+        text: trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']),
       },
     ],
     gender: 'female',
@@ -123,7 +158,7 @@ fn(state => {
       {
         other: {
           type: 'RelatedPerson',
-          reference: 'urn:uuid:related-person-mother',
+          reference: state.temporaryFullUrl.relatedPersonMother,
         },
         type: 'seealso'
       }
@@ -147,7 +182,7 @@ fn(state => {
         ],
         name: {
           use: 'official',
-          text: input['group_gr5be69/Nama_Ayah'],
+          text: trimSpacesTitleCase(input['group_gr5be69/Nama_Ayah']),
         },
         gender: 'male',
       },
@@ -174,20 +209,26 @@ fn(state => {
   }
 
   const relatedPersonMother = {
-    fullUrl: 'urn:uuid:related-person-mother', // will be referenced in other resources
+    fullUrl: state.temporaryFullUrl.relatedPersonMother, // will be referenced in other resources
     request: {
       method: 'PUT',
-      url: `RelatedPerson?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|${input['group_gr5be69/Nama_Ibu'].replace(/ /g, "_")}-${input['id_balita/nama_balita'].replace(/ /g, "_")}`
+      url: `RelatedPerson?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|\
+        ${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}\
+        -\
+        ${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}`
     },
 
     resource: relatedPersonResourceMother
   };
 
   const patientMother = {
-    fullUrl: 'urn:uuid:patient-mother', // will be referenced in other resources
+    fullUrl: state.temporaryFullUrl.patientMother, // will be referenced in other resources
     request: {
       method: 'PUT',
-      url: `Patient?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|${input['group_gr5be69/Nama_Ibu'].replace(/ /g, "_")}-${input['id_balita/nama_balita'].replace(/ /g, "_")}`
+      url: `Patient?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|\
+        ${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}\
+        -\
+        ${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}`
     },
 
     resource: patientResourceMother
@@ -200,6 +241,7 @@ fn(state => {
 fn(state => {
 
   const input = state.data;
+  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const patientResourceBaby = {
     resourceType: 'Patient',
@@ -207,13 +249,15 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-baby-name-and-mother-name',
-        value: `${input['id_balita/nama_balita'].replace(/ /g, "_")}-${input['group_gr5be69/Nama_Ibu'].replace(/ /g, "_")}`,
+        value: `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}\
+          -\
+          ${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}`,
       },
     ],
     name: [
       {
         use: 'official',
-        text: input['id_balita/nama_balita'],
+        text: trimSpacesTitleCase(input['id_balita/nama_balita']),
       },
     ],
     birthDate: input['id_balita/dob_balita'],
@@ -225,14 +269,17 @@ fn(state => {
   }
 
   if (input.hasOwnProperty('id_balita/jenis_kelamin_balita')) {
-    patientResourceBaby['gender'] = (input['id_balita/jenis_kelamin_balita'] === 'perempuan') ? 'female' : 'male';
+    patientResourceBaby['gender'] = (input['id_balita/jenis_kelamin_balita'] === 'perempuan' ? 'female' : 'male');
   }
 
   const patientBaby = {
-    fullUrl: 'urn:uuid:patient-baby', // will be referenced in other resources
+    fullUrl: state.temporaryFullUrl.patientBaby, // will be referenced in other resources
     request: {
       method: 'PUT',
-      url: `Patient?identifier=https://fhir.kemkes.go.id/id/temp-identifier-baby-name-and-mother-name|${input['id_balita/nama_balita'].replace(/ /g, "_")}-${input['group_gr5be69/Nama_Ibu'].replace(/ /g, "_")}`
+      url: `Patient?identifier=https://fhir.kemkes.go.id/id/temp-identifier-baby-name-and-mother-name|\
+        ${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}\
+        -\
+        ${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}`
     },
 
     resource: patientResourceBaby
@@ -241,16 +288,122 @@ fn(state => {
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, patientBaby] } };
 });
 
+// Build "Practitioner" resource for the cadre
+fn(state => {
+
+  const input = state.data;
+  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+  const practitionerResource = {
+    resourceType: 'Practitioner',
+    identifier: [
+      {
+        use: 'temp',
+        system: 'https://fhir.kemkes.go.id/id/temp-identifier-desa-name-and-cadre-name',
+        value: `${trimSpacesTitleCase(input['group_yp32g51/Desa']).replace(/ /g, "_")}\
+          -\
+          ${trimSpacesTitleCase(input['group_yp32g51/Nama_Kader']).replace(/ /g, "_")}`,
+      },
+    ],
+    name: [
+      {
+        use: 'official',
+        text: trimSpacesTitleCase(input['group_yp32g51/Nama_Kader']),
+      },
+    ],
+  }
+
+  const practitionerCadre = {
+    fullUrl: state.temporaryFullUrl.practitionerCadre, // will be referenced in other resources
+    request: {
+      method: 'PUT',
+      url: `Practitioner?identifier=https://fhir.kemkes.go.id/id/temp-identifier-desa-name-and-cadre-name|\
+        ${trimSpacesTitleCase(input['group_yp32g51/Desa']).replace(/ /g, "_")}\
+        -\
+        ${trimSpacesTitleCase(input['group_yp32g51/Nama_Kader']).replace(/ /g, "_")}`
+    },
+
+    resource: practitionerResource
+  };
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, practitionerCadre] } };
+});
+
+// Build "Location" resources for "Desa" and "Dusun"
+fn(state => {
+
+  const input = state.data;
+  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+  const locationResourceDesa = {
+    resourceType: 'Location',
+    identifier: [
+      {
+        use: 'temp',
+        system: 'https://fhir.kemkes.go.id/id/temp-identifier-desa-name',
+        value: `${trimSpacesTitleCase(input['group_yp32g51/Desa']).replace(/ /g, "_")}`,
+      },
+    ],
+    name: trimSpacesTitleCase(input['group_yp32g51/Desa']),
+  }
+
+  const locationDesa = {
+    fullUrl: state.temporaryFullUrl.locationDesa, // will be referenced in other resources
+    request: {
+      method: 'PUT',
+      url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-desa-name|\
+        ${trimSpacesTitleCase(input['group_yp32g51/Desa']).replace(/ /g, "_")}`
+    },
+
+    resource: locationResourceDesa
+  };
+
+  const locationResourceDusun = {
+    resourceType: 'Location',
+    identifier: [
+      {
+        use: 'temp',
+        system: 'https://fhir.kemkes.go.id/id/temp-identifier-dusun-name',
+        value: `${trimSpacesTitleCase(input['group_yp32g51/Silahkan_pilih_salah_satu_nama']).replace(/ /g, "_")}`,
+      },
+    ],
+    name: trimSpacesTitleCase(input['group_yp32g51/Silahkan_pilih_salah_satu_nama']),
+    partOf: {
+      type: "Location",
+      reference: state.temporaryFullUrl.locationDesa,
+    }
+  }
+
+  const locationDusun = {
+    fullUrl: state.temporaryFullUrl.locationDusun, // will be referenced in other resources
+    request: {
+      method: 'PUT',
+      url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-dusun-name|\
+        ${trimSpacesTitleCase(input['group_yp32g51/Silahkan_pilih_salah_satu_nama']).replace(/ /g, "_")}`
+    },
+
+    resource: locationResourceDesa
+  };
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, locationDesa, locationDusun] } };
+});
+
 // Build "Encounter" resource
 fn(state => {
 
   const input = state.data;
+  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
+  input['group_yp32g51/Desa'].replace(/\s+/g, " ");
   const encounter = {
-    fullUrl: 'urn:uuid:13c31d68-114c-482a-a5e2-5df2c36a81c8', // will be referenced in other resources
+    fullUrl: state.temporaryFullUrl.encounterPosyandu, // will be referenced in other resources
     request: {
       method: 'PUT',
-      url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|${input['id_balita/nama_balita'].replace(/ /g, "_")}-${input['group_gr5be69/Nama_Ibu'].replace(/ /g, "_")}-BABY_POSYANDU_VISIT`
+      url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|\
+        ${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}\
+        -\
+        ${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}\
+        -BABY_POSYANDU_VISIT`
     },
 
     resource: {
@@ -264,13 +417,24 @@ fn(state => {
       identifier: [
         {
           system: 'https://fhir.kemkes.go.id/id/encounter',
-          value: `${input['id_balita/nama_balita'].replace(/ /g, "_")}-${input['group_gr5be69/Nama_Ibu'].replace(/ /g, "_")}-BABY_POSYANDU_VISIT`,
+          value: `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}\
+            -\
+            ${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}\
+            -BABY_POSYANDU_VISIT`,
         },
       ],
       subject: {
         type: 'Patient',
-        reference: 'urn:uuid:patient-baby',
+        reference: state.temporaryFullUrl.patientBaby,
       },
+      location: [
+        {
+          location: {
+            type: 'Location',
+            reference: state.temporaryFullUrl.locationDusun,
+          }
+        }
+      ],
     },
   };
 
@@ -292,7 +456,7 @@ fn(state => {
       {
         use: 'usual',
         system: 'https://fhir.kemkes.go.id/id/observation',
-        value: `${input['id_balita/nama_balita'].replace(/ /g, "_")}-${input['group_gr5be69/Nama_Ibu'].replace(/ /g, "_")}-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
+        value: `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}-${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
       },
     ],
     status: 'final',
@@ -307,7 +471,7 @@ fn(state => {
     },
     subject: {
       type: 'Patient',
-      reference: 'urn:uuid:patient-baby',
+      reference: state.temporaryFullUrl.patientBaby,
     },
     encounter: {
       type: 'Encounter',
@@ -321,13 +485,21 @@ fn(state => {
   observations.push({
     request: {
       method: 'PUT',
-      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${input['id_balita/nama_balita'].replace(/ /g, "_")}-${input['group_gr5be69/Nama_Ibu'].replace(/ /g, "_")}-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}-${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`
     },
 
     resource: observationResource,
   });
 
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, ...observations] } };
+});
+
+// Remove common variables and functions from the state
+fn(state => {
+  delete state.commonFunctions;
+  delete state.temporaryFullUrl;
+
+  return state;
 });
 
 // Wrap up the transaction bundle
