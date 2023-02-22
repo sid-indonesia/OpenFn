@@ -31,6 +31,23 @@ fn(state => {
     encounterPosyandu: 'urn:uuid:encounter-posyandu',
   };
 
+  const input = state.data;
+  state.inputKey = {
+    desaName: 'group_yp32g51/Desa',
+    dusunName: Object.keys(input).find(key => key.startsWith('group_yp32g51/Silahkan_pilih_')),
+    cadreName: 'group_yp32g51/Nama_Kader',
+    motherName: 'group_gr5be69/Nama_Ibu',
+    motherBirthDate: 'group_gr5be69/Tanggal_lahir_Ibu',
+    motherAddress: 'group_gr5be69/Alamat',
+    motherPhoneNumber: 'group_gr5be69/Silahkan_isi_nomor_telepon_Ibu',
+    fatherName: 'group_gr5be69/Nama_Ayah',
+    babyName: 'id_balita/nama_balita',
+    babyBirthDate: 'id_balita/dob_balita',
+    babyGender: 'id_balita/jenis_kelamin_balita',
+    visitPosyanduDate: 'group_ho1bh03/Tanggal_Posyandu',
+    isBabyGivenAdditionalFoodAtPosyandu: 'group_ho1bh03/Apakah_bayi_balita_m_mbahan_saat_posyandu',
+  }
+
   return state;
 });
 
@@ -89,9 +106,9 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name',
-        value: `${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}` +
+        value: `${trimSpacesTitleCase(input[state.inputKey.motherName]).replace(/ /g, "_")}` +
           `-` +
-          `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}`,
+          `${trimSpacesTitleCase(input[state.inputKey.babyName]).replace(/ /g, "_")}`,
       },
     ],
     patient: {
@@ -113,14 +130,14 @@ fn(state => {
     name: [
       {
         use: 'official',
-        text: trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']),
+        text: trimSpacesTitleCase(input[state.inputKey.motherName]),
       },
     ],
     gender: 'female',
     address: [
       {
         use: 'home',
-        text: input['group_gr5be69/Alamat'],
+        text: input[state.inputKey.motherAddress],
       },
     ],
   };
@@ -131,22 +148,22 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name',
-        value: `${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}` +
+        value: `${trimSpacesTitleCase(input[state.inputKey.motherName]).replace(/ /g, "_")}` +
           `-` +
-          `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}`,
+          `${trimSpacesTitleCase(input[state.inputKey.babyName]).replace(/ /g, "_")}`,
       },
     ],
     name: [
       {
         use: 'official',
-        text: trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']),
+        text: trimSpacesTitleCase(input[state.inputKey.motherName]),
       },
     ],
     gender: 'female',
     address: [
       {
         use: 'home',
-        text: input['group_gr5be69/Alamat'],
+        text: input[state.inputKey.motherAddress],
       },
     ],
     managingOrganization: {
@@ -165,7 +182,7 @@ fn(state => {
     ]
   };
 
-  if (input.hasOwnProperty('group_gr5be69/Nama_Ayah')) {
+  if (input.hasOwnProperty(state.inputKey.fatherName)) {
     patientResourceMother.contact = [
       {
         relationship: [
@@ -182,24 +199,24 @@ fn(state => {
         ],
         name: {
           use: 'official',
-          text: trimSpacesTitleCase(input['group_gr5be69/Nama_Ayah']),
+          text: trimSpacesTitleCase(input[state.inputKey.fatherName]),
         },
         gender: 'male',
       },
     ];
   }
 
-  if (input.hasOwnProperty('group_gr5be69/Tanggal_lahir_Ibu')) {
-    patientResourceMother.birthDate = input['group_gr5be69/Tanggal_lahir_Ibu'];
+  if (input.hasOwnProperty(state.inputKey.motherBirthDate)) {
+    patientResourceMother.birthDate = input[state.inputKey.motherBirthDate];
 
     relatedPersonResourceMother.birthDate = patientResourceMother.birthDate;
   }
 
-  if (input.hasOwnProperty('group_gr5be69/Silahkan_isi_nomor_telepon_Ibu')) {
+  if (input.hasOwnProperty(state.inputKey.motherPhoneNumber)) {
     patientResourceMother.telecom = [
       {
         system: 'phone',
-        value: input['group_gr5be69/Silahkan_isi_nomor_telepon_Ibu'],
+        value: input[state.inputKey.motherPhoneNumber],
         use: 'mobile',
         rank: 1,
       }
@@ -213,9 +230,9 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `RelatedPerson?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        `${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}` +
+        `${trimSpacesTitleCase(input[state.inputKey.motherName]).replace(/ /g, "_")}` +
         `-` +
-        `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}`,
+        `${trimSpacesTitleCase(input[state.inputKey.babyName]).replace(/ /g, "_")}`,
     },
 
     resource: relatedPersonResourceMother
@@ -226,9 +243,9 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Patient?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        `${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}` +
+        `${trimSpacesTitleCase(input[state.inputKey.motherName]).replace(/ /g, "_")}` +
         `-` +
-        `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}`,
+        `${trimSpacesTitleCase(input[state.inputKey.babyName]).replace(/ /g, "_")}`,
     },
 
     resource: patientResourceMother
@@ -249,18 +266,18 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-baby-name-and-mother-name',
-        value: `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}` +
+        value: `${trimSpacesTitleCase(input[state.inputKey.babyName]).replace(/ /g, "_")}` +
           `-` +
-          `${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}`,
+          `${trimSpacesTitleCase(input[state.inputKey.motherName]).replace(/ /g, "_")}`,
       },
     ],
     name: [
       {
         use: 'official',
-        text: trimSpacesTitleCase(input['id_balita/nama_balita']),
+        text: trimSpacesTitleCase(input[state.inputKey.babyName]),
       },
     ],
-    birthDate: input['id_balita/dob_balita'],
+    birthDate: input[state.inputKey.babyBirthDate],
     managingOrganization: {
       type: 'Organization',
       reference: state.transactionBundle.entry
@@ -268,8 +285,8 @@ fn(state => {
     },
   };
 
-  if (input.hasOwnProperty('id_balita/jenis_kelamin_balita')) {
-    patientResourceBaby.gender = (input['id_balita/jenis_kelamin_balita'] === 'perempuan' ? 'female' : 'male');
+  if (input.hasOwnProperty(state.inputKey.babyGender)) {
+    patientResourceBaby.gender = (input[state.inputKey.babyGender] === 'perempuan' ? 'female' : 'male');
   }
 
   const patientBaby = {
@@ -277,9 +294,9 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Patient?identifier=https://fhir.kemkes.go.id/id/temp-identifier-baby-name-and-mother-name|` +
-        `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}` +
+        `${trimSpacesTitleCase(input[state.inputKey.babyName]).replace(/ /g, "_")}` +
         `-` +
-        `${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}`,
+        `${trimSpacesTitleCase(input[state.inputKey.motherName]).replace(/ /g, "_")}`,
     },
 
     resource: patientResourceBaby
@@ -300,15 +317,15 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-desa-name-and-cadre-name',
-        value: `${trimSpacesTitleCase(input['group_yp32g51/Desa']).replace(/ /g, "_")}` +
+        value: `${trimSpacesTitleCase(input[state.inputKey.desaName]).replace(/ /g, "_")}` +
           `-` +
-          `${trimSpacesTitleCase(input['group_yp32g51/Nama_Kader']).replace(/ /g, "_")}`,
+          `${trimSpacesTitleCase(input[state.inputKey.cadreName]).replace(/ /g, "_")}`,
       },
     ],
     name: [
       {
         use: 'official',
-        text: trimSpacesTitleCase(input['group_yp32g51/Nama_Kader']),
+        text: trimSpacesTitleCase(input[state.inputKey.cadreName]),
       },
     ],
   };
@@ -318,9 +335,9 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Practitioner?identifier=https://fhir.kemkes.go.id/id/temp-identifier-desa-name-and-cadre-name|` +
-        `${trimSpacesTitleCase(input['group_yp32g51/Desa']).replace(/ /g, "_")}` +
+        `${trimSpacesTitleCase(input[state.inputKey.desaName]).replace(/ /g, "_")}` +
         `-` +
-        `${trimSpacesTitleCase(input['group_yp32g51/Nama_Kader']).replace(/ /g, "_")}`,
+        `${trimSpacesTitleCase(input[state.inputKey.cadreName]).replace(/ /g, "_")}`,
     },
 
     resource: practitionerResource
@@ -341,10 +358,10 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-desa-name',
-        value: `${trimSpacesTitleCase(input['group_yp32g51/Desa']).replace(/ /g, "_")}`,
+        value: `${trimSpacesTitleCase(input[state.inputKey.desaName]).replace(/ /g, "_")}`,
       },
     ],
-    name: trimSpacesTitleCase(input['group_yp32g51/Desa']),
+    name: trimSpacesTitleCase(input[state.inputKey.desaName]),
   };
 
   const locationDesa = {
@@ -352,25 +369,24 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-desa-name|` +
-        `${trimSpacesTitleCase(input['group_yp32g51/Desa']).replace(/ /g, "_")}`
+        `${trimSpacesTitleCase(input[state.inputKey.desaName]).replace(/ /g, "_")}`
     },
 
     resource: locationResourceDesa
   };
 
-  const keyDusunName = Object.keys(input).find(key => key.startsWith('group_yp32g51/Silahkan_pilih_'));
   const locationResourceDusun = {
     resourceType: 'Location',
     identifier: [
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-dusun-name-and-desa-name',
-        value: `${trimSpacesTitleCase(input[keyDusunName]).replace(/ /g, "_")}` +
+        value: `${trimSpacesTitleCase(input[state.inputKey.dusunName]).replace(/ /g, "_")}` +
           `-` +
-          `${trimSpacesTitleCase(input['group_yp32g51/Desa']).replace(/ /g, "_")}`,
+          `${trimSpacesTitleCase(input[state.inputKey.desaName]).replace(/ /g, "_")}`,
       },
     ],
-    name: trimSpacesTitleCase(input[keyDusunName]),
+    name: trimSpacesTitleCase(input[state.inputKey.dusunName]),
     partOf: {
       type: "Location",
       reference: state.temporaryFullUrl.locationDesa,
@@ -382,9 +398,9 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-dusun-name-and-desa-name|` +
-        `${trimSpacesTitleCase(input[keyDusunName]).replace(/ /g, "_")}` +
+        `${trimSpacesTitleCase(input[state.inputKey.dusunName]).replace(/ /g, "_")}` +
         `-` +
-        `${trimSpacesTitleCase(input['group_yp32g51/Desa']).replace(/ /g, "_")}`,
+        `${trimSpacesTitleCase(input[state.inputKey.desaName]).replace(/ /g, "_")}`,
     },
 
     resource: locationResourceDusun
@@ -404,9 +420,9 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|` +
-        `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}` +
+        `${trimSpacesTitleCase(input[state.inputKey.babyName]).replace(/ /g, "_")}` +
         `-` +
-        `${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}` +
+        `${trimSpacesTitleCase(input[state.inputKey.motherName]).replace(/ /g, "_")}` +
         `-BABY_POSYANDU_VISIT`,
     },
 
@@ -421,9 +437,9 @@ fn(state => {
       identifier: [
         {
           system: 'https://fhir.kemkes.go.id/id/encounter',
-          value: `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}` +
+          value: `${trimSpacesTitleCase(input[state.inputKey.babyName]).replace(/ /g, "_")}` +
             `-` +
-            `${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}` +
+            `${trimSpacesTitleCase(input[state.inputKey.motherName]).replace(/ /g, "_")}` +
             `-BABY_POSYANDU_VISIT`,
         },
       ],
@@ -451,7 +467,7 @@ fn(state => {
   const input = state.data;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
-  const babyHasReceivedAdditionalFoodAtPosyandu = input['group_ho1bh03/Apakah_bayi_balita_m_mbahan_saat_posyandu'] === 'tidak' ? false : true;
+  const babyHasReceivedAdditionalFoodAtPosyandu = input[state.inputKey.isBabyGivenAdditionalFoodAtPosyandu] === 'tidak' ? false : true;
 
   let observations = [];
 
@@ -461,9 +477,9 @@ fn(state => {
       {
         use: 'usual',
         system: 'https://fhir.kemkes.go.id/id/observation',
-        value: `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}` +
+        value: `${trimSpacesTitleCase(input[state.inputKey.babyName]).replace(/ /g, "_")}` +
           `-` +
-          `${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}` +
+          `${trimSpacesTitleCase(input[state.inputKey.motherName]).replace(/ /g, "_")}` +
           `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
       },
     ],
@@ -486,7 +502,7 @@ fn(state => {
       reference: state.transactionBundle.entry
         .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
     },
-    effectiveDateTime: input['group_ho1bh03/Tanggal_Posyandu'],
+    effectiveDateTime: input[state.inputKey.visitPosyanduDate],
     valueBoolean: babyHasReceivedAdditionalFoodAtPosyandu,
   };
 
@@ -494,9 +510,9 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-        `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}` +
+        `${trimSpacesTitleCase(input[state.inputKey.babyName]).replace(/ /g, "_")}` +
         `-` +
-        `${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}` +
+        `${trimSpacesTitleCase(input[state.inputKey.motherName]).replace(/ /g, "_")}` +
         `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
     },
 
@@ -510,6 +526,7 @@ fn(state => {
 fn(state => {
   delete state.commonFunctions;
   delete state.temporaryFullUrl;
+  delete state.inputKey;
 
   return state;
 });
