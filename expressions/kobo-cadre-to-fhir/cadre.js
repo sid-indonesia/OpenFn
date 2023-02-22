@@ -394,7 +394,6 @@ fn(state => {
   const input = state.data;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
-  input['group_yp32g51/Desa'].replace(/\s+/g, " ");
   const encounter = {
     fullUrl: state.temporaryFullUrl.encounterPosyandu, // will be referenced in other resources
     request: {
@@ -457,7 +456,10 @@ fn(state => {
       {
         use: 'usual',
         system: 'https://fhir.kemkes.go.id/id/observation',
-        value: `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}-${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
+        value: `${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}\
+          -\
+          ${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}\
+          -BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
       },
     ],
     status: 'final',
@@ -486,7 +488,11 @@ fn(state => {
   observations.push({
     request: {
       method: 'PUT',
-      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}-${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|\
+        ${trimSpacesTitleCase(input['id_balita/nama_balita']).replace(/ /g, "_")}\
+        -\
+        ${trimSpacesTitleCase(input['group_gr5be69/Nama_Ibu']).replace(/ /g, "_")}\
+        -BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`
     },
 
     resource: observationResource,
