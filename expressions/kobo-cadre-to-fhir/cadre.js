@@ -266,10 +266,10 @@ fn(state => {
       reference: state.transactionBundle.entry
         .find(e => e.resource.resourceType === 'Organization').fullUrl, // same as "SID" Organization's `fullurl`
     },
-  }
+  };
 
   if (input.hasOwnProperty('id_balita/jenis_kelamin_balita')) {
-    patientResourceBaby['gender'] = (input['id_balita/jenis_kelamin_balita'] === 'perempuan' ? 'female' : 'male');
+    patientResourceBaby.gender = (input['id_balita/jenis_kelamin_balita'] === 'perempuan' ? 'female' : 'male');
   }
 
   const patientBaby = {
@@ -311,7 +311,7 @@ fn(state => {
         text: trimSpacesTitleCase(input['group_yp32g51/Nama_Kader']),
       },
     ],
-  }
+  };
 
   const practitionerCadre = {
     fullUrl: state.temporaryFullUrl.practitionerCadre, // will be referenced in other resources
@@ -345,7 +345,7 @@ fn(state => {
       },
     ],
     name: trimSpacesTitleCase(input['group_yp32g51/Desa']),
-  }
+  };
 
   const locationDesa = {
     fullUrl: state.temporaryFullUrl.locationDesa, // will be referenced in other resources
@@ -372,7 +372,7 @@ fn(state => {
       type: "Location",
       reference: state.temporaryFullUrl.locationDesa,
     }
-  }
+  };
 
   const locationDusun = {
     fullUrl: state.temporaryFullUrl.locationDusun, // will be referenced in other resources
@@ -445,6 +445,7 @@ fn(state => {
 fn(state => {
 
   const input = state.data;
+  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const babyHasReceivedAdditionalFoodAtPosyandu = input['group_ho1bh03/Apakah_bayi_balita_m_mbahan_saat_posyandu'] === 'tidak' ? false : true;
 
