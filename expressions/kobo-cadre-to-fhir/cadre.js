@@ -358,16 +358,19 @@ fn(state => {
     resource: locationResourceDesa
   };
 
+  const keyDusunName = Object.keys(input).find(key => key.startsWith('group_yp32g51/Silahkan_pilih_'));
   const locationResourceDusun = {
     resourceType: 'Location',
     identifier: [
       {
         use: 'temp',
-        system: 'https://fhir.kemkes.go.id/id/temp-identifier-dusun-name',
-        value: `${trimSpacesTitleCase(input['group_yp32g51/Silahkan_pilih_salah_satu_nama']).replace(/ /g, "_")}`,
+        system: 'https://fhir.kemkes.go.id/id/temp-identifier-dusun-name-and-desa-name',
+        value: `${trimSpacesTitleCase(input[keyDusunName]).replace(/ /g, "_")}\
+          -\
+          ${trimSpacesTitleCase(input['group_yp32g51/Desa']).replace(/ /g, "_")}`,
       },
     ],
-    name: trimSpacesTitleCase(input['group_yp32g51/Silahkan_pilih_salah_satu_nama']),
+    name: trimSpacesTitleCase(input[keyDusunName]),
     partOf: {
       type: "Location",
       reference: state.temporaryFullUrl.locationDesa,
@@ -379,10 +382,10 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-dusun-name|\
-        ${trimSpacesTitleCase(input['group_yp32g51/Silahkan_pilih_salah_satu_nama']).replace(/ /g, "_")}`
+        ${trimSpacesTitleCase(input[keyDusunName]).replace(/ /g, "_")}`
     },
 
-    resource: locationResourceDesa
+    resource: locationResourceDusun
   };
 
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, locationDesa, locationDusun] } };
