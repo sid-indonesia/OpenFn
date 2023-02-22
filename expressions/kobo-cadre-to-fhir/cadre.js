@@ -19,7 +19,7 @@ fn(state => {
       return sentence.join(" ");
     }
 
-  }
+  };
 
   state.temporaryFullUrl = {
     patientBaby: 'urn:uuid:patient-baby',
@@ -29,7 +29,7 @@ fn(state => {
     locationDesa: 'urn:uuid:location-desa',
     locationDusun: 'urn:uuid:location-dusun',
     encounterPosyandu: 'urn:uuid:encounter-posyandu',
-  }
+  };
 
   return state;
 });
@@ -123,7 +123,7 @@ fn(state => {
         text: input['group_gr5be69/Alamat'],
       },
     ],
-  }
+  };
 
   const patientResourceMother = {
     resourceType: 'Patient',
@@ -163,10 +163,10 @@ fn(state => {
         type: 'seealso'
       }
     ]
-  }
+  };
 
   if (input.hasOwnProperty('group_gr5be69/Nama_Ayah')) {
-    patientResourceMother['contact'] = [
+    patientResourceMother.contact = [
       {
         relationship: [
           {
@@ -186,26 +186,26 @@ fn(state => {
         },
         gender: 'male',
       },
-    ]
+    ];
   }
 
   if (input.hasOwnProperty('group_gr5be69/Tanggal_lahir_Ibu')) {
-    patientResourceMother['birthDate'] = input['group_gr5be69/Tanggal_lahir_Ibu'];
+    patientResourceMother.birthDate = input['group_gr5be69/Tanggal_lahir_Ibu'];
 
-    relatedPersonResourceMother['birthDate'] = patientResourceMother['birthDate'];
+    relatedPersonResourceMother.birthDate = patientResourceMother.birthDate;
   }
 
   if (input.hasOwnProperty('group_gr5be69/Silahkan_isi_nomor_telepon_Ibu')) {
-    patientResourceMother['telecom'] = [
+    patientResourceMother.telecom = [
       {
         system: 'phone',
         value: input['group_gr5be69/Silahkan_isi_nomor_telepon_Ibu'],
         use: 'mobile',
         rank: 1,
       }
-    ]
+    ];
 
-    relatedPersonResourceMother['telecom'] = patientResourceMother['telecom'];
+    relatedPersonResourceMother.telecom = patientResourceMother.telecom;
   }
 
   const relatedPersonMother = {
