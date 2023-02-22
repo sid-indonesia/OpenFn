@@ -10,7 +10,7 @@ fn(state => {
   state.commonFunctions = {
 
     trimSpacesTitleCase: (string) => {
-      const cleanString = string.replace(/\s+/g, " ").toLowerCase(); // Remove extra spaces
+      const cleanString = string.replace(/_/g, " ").replace(/\s+/g, " ").toLowerCase(); // Remove extra spaces
       let sentence = cleanString.split(" ");
       for (let i = 0; i < sentence.length; i++) {
         sentence[i] = sentence[i][0].toUpperCase() + sentence[i].slice(1);
