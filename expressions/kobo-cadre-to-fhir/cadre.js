@@ -382,7 +382,9 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-dusun-name-and-desa-name|` +
-        `${trimSpacesTitleCase(input[keyDusunName]).replace(/ /g, "_")}`,
+        `${trimSpacesTitleCase(input[keyDusunName]).replace(/ /g, "_")}` +
+        `-` +
+        `${trimSpacesTitleCase(input['group_yp32g51/Desa']).replace(/ /g, "_")}`,
     },
 
     resource: locationResourceDusun
