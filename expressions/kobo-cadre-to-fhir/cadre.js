@@ -381,7 +381,7 @@ fn(state => {
     fullUrl: state.temporaryFullUrl.locationDusun, // will be referenced in other resources
     request: {
       method: 'PUT',
-      url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-dusun-name|` +
+      url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-dusun-name-and-desa-name|` +
         `${trimSpacesTitleCase(input[keyDusunName]).replace(/ /g, "_")}`,
     },
 
