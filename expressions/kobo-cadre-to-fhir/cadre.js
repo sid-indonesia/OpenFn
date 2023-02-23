@@ -52,8 +52,15 @@ fn(state => {
     motherPhoneNumber: 'group_gr5be69/Silahkan_isi_nomor_telepon_Ibu',
     fatherName: 'group_gr5be69/Nama_Ayah',
     incomePerMonth: 'group_gr5be69/Pendapatan_per_bulan',
-    babyBirthWeight: 'id_balita/Berat_badan_lahir',
+    babyBirthWeightInKg: 'id_balita/Berat_badan_lahir',
     babyGender: 'id_balita/jenis_kelamin_balita',
+    babyWeightAtPosyanduInKg: 'group_ho1bh03/Berat_Bayi_balita',
+    babyHeightAtPosyanduInCm: 'group_ho1bh03/Panjang_Bayi_balita',
+    babyHeadCircumferenceInCm: 'group_ho1bh03/Lingkar_Kepala',
+    isBabyGivenVitaminAAtPosyandu: 'group_ho1bh03/Apakah_bayi_menerima_Vit_A_sa',
+    dosageBabyGivenVitaminAAtPosyandu: 'group_ho1bh03/Berapa_dosis_Vit_A_erikan_saat_posyandu',
+    immunizationsGivenToBabyAtPosyanduSeparatedBySpace: 'group_ho1bh03/Apa_jenis_imunisasi_yang_diber',
+    otherImmunizationsGivenToBabyAtPosyandu: 'group_ho1bh03/Sebutkan_jenis_imuni_at_posyandu_hari_ini',
   };
 
   return state;
@@ -566,9 +573,10 @@ fn(state => {
 fn(state => {
 
   const input = state.data;
-  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   if (input.hasOwnProperty(state.inputKey.optional.incomePerMonth)) {
+    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
     const observation = {
       request: {
         method: 'PUT',
@@ -624,9 +632,10 @@ fn(state => {
 fn(state => {
 
   const input = state.data;
-  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
-  if (input.hasOwnProperty(state.inputKey.optional.babyBirthWeight)) {
+  if (input.hasOwnProperty(state.inputKey.optional.babyBirthWeightInKg)) {
+    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
     const observation = {
       request: {
         method: 'PUT',
@@ -664,7 +673,69 @@ fn(state => {
         },
         effectiveDateTime: input[state.inputKey.required.babyBirthDate],
         valueQuantity: {
-          value: Number(input[state.inputKey.optional.babyBirthWeight]),
+          value: Number(input[state.inputKey.optional.babyBirthWeightInKg]),
+          unit: 'kg',
+        },
+      },
+    };
+
+    return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
+  } else {
+    return state;
+  }
+});
+
+// Build "Observation" resource, for "Baby weight measured at Posyandu"
+fn(state => {
+
+  const input = state.data;
+
+  if (input.hasOwnProperty(state.inputKey.optional.babyWeightAtPosyanduInKg)) {
+    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+    const observation = {
+      request: {
+        method: 'PUT',
+        url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
+          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
+          `-` +
+          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+          `-BABY_WEIGHT_AT_POSYANDU`,
+      },
+
+      resource: {
+        resourceType: 'Observation',
+        identifier: [
+          {
+            system: 'https://fhir.kemkes.go.id/id/observation',
+            value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
+              `-` +
+              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+              `-BABY_WEIGHT_AT_POSYANDU`
+          },
+        ],
+        status: 'final',
+        code: {
+          coding: [
+            {
+              system: 'http://loinc.org',
+              code: '3141-9',
+              display: 'Body weight Measured',
+            },
+          ],
+        },
+        subject: {
+          type: 'Patient',
+          reference: state.temporaryFullUrl.patientBaby,
+        },
+        encounter: {
+          type: 'Encounter',
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+        },
+        effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
+        valueQuantity: {
+          value: Number(input[state.inputKey.optional.babyWeightAtPosyanduInKg]),
           unit: 'kg',
         },
       },
