@@ -34,7 +34,7 @@ fn(state => {
 
   const input = state.data;
   state.inputKey = {
-    kecamatanName: 'group_yp32g51/Kecamatan',
+    kecamatanName: 'group_yp32g51/Nama_Kecamatan',
     desaName: 'group_yp32g51/Desa',
     dusunName: Object.keys(input).find(key => key.startsWith('group_yp32g51/Silahkan_pilih_')),
     cadreName: 'group_yp32g51/Nama_Kader',
