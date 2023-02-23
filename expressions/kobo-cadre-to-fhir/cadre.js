@@ -33,6 +33,7 @@ fn(state => {
   };
 
   const input = state.data;
+  state.inputKey = {};
   state.inputKey.required = {
     kecamatanName: 'group_yp32g51/Nama_Kecamatan',
     desaName: 'group_yp32g51/Desa',
