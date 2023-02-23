@@ -937,6 +937,137 @@ fn(state => {
   }
 });
 
+// Build "Immunization" resources
+fn(state => {
+
+  const input = state.data;
+  if (input.hasOwnProperty(state.inputKey.optional.immunizationsGivenToBabyAtPosyanduSeparatedBySpace)) {
+    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+    immunizationTypeList = input[state.inputKey.optional.immunizationsGivenToBabyAtPosyanduSeparatedBySpace].split(' ');
+    const immunizationResources = immunizationTypeList.map(
+      (immunizationType) => {
+        return {
+          request: {
+            method: 'PUT',
+            url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|` +
+              `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
+              `-` +
+              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+              `-BABY_IMMUNIZATION_${immunizationType.toUpperCase()}`,
+          },
+
+          resource: {
+            resourceType: 'Immunization',
+            identifier: [
+              {
+                use: 'temp',
+                system: 'https://fhir.kemkes.go.id/id/immunization',
+                value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
+                  `-` +
+                  `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+                  `-BABY_IMMUNIZATION_${immunizationType.toUpperCase()}`
+              },
+            ],
+            status: 'completed',
+            vaccineCode: {
+              coding: [
+                {
+                  system: 'https://sid-indonesia.org/clinical-codes',
+                  code: immunizationType,
+                  display: `Baby Immunization, ${immunizationType}`,
+                },
+              ],
+              text: immunizationType,
+            },
+            occurrenceDateTime: input[state.inputKey.required.visitPosyanduDate],
+            patient: {
+              type: 'Patient',
+              reference: state.temporaryFullUrl.patientBaby,
+            },
+            encounter: {
+              type: 'Encounter',
+              reference: state.transactionBundle.entry
+                .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+            },
+            location: {
+              type: 'Location',
+              reference: state.temporaryFullUrl.locationDusun,
+            }
+          },
+        };
+      }
+    );
+
+    return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, ...immunizationResources] } };
+  } else {
+    return state;
+  }
+});
+
+// Build other "Immunization" resource, if specified
+fn(state => {
+
+  const input = state.data;
+  if (input.hasOwnProperty(state.inputKey.optional.otherImmunizationsGivenToBabyAtPosyandu)) {
+    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+    const otherImmunizationType = input[state.inputKey.optional.otherImmunizationsGivenToBabyAtPosyandu];
+
+    const otherImmunization = {
+      request: {
+        method: 'PUT',
+        url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|` +
+          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
+          `-` +
+          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+          `-BABY_OTHER_IMMUNIZATION_${trimSpacesTitleCase(otherImmunizationType).toUpperCase().replace(/ /g, "_")}`,
+      },
+
+      resource: {
+        resourceType: 'Immunization',
+        identifier: [
+          {
+            use: 'temp',
+            system: 'https://fhir.kemkes.go.id/id/immunization',
+            value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
+              `-` +
+              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+              `-BABY_OTHER_IMMUNIZATION_${trimSpacesTitleCase(otherImmunizationType).toUpperCase().replace(/ /g, "_")}`,
+          },
+        ],
+        status: 'completed',
+        vaccineCode: {
+          coding: [
+            {
+              system: 'https://sid-indonesia.org/clinical-codes',
+              code: trimSpacesTitleCase(otherImmunizationType),
+              display: `Baby Other Immunization, ${otherImmunizationType}`,
+            },
+          ],
+          text: otherImmunizationType,
+        },
+        occurrenceDateTime: input[state.inputKey.required.visitPosyanduDate],
+        patient: {
+          type: 'Patient',
+          reference: state.temporaryFullUrl.patientBaby,
+        },
+        encounter: {
+          type: 'Encounter',
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+        },
+        location: {
+          type: 'Location',
+          reference: state.temporaryFullUrl.locationDusun,
+        }
+      },
+    };
+
+    return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, otherImmunization] } };
+  } else {
+    return state;
+  }
+});
+
 // Remove common variables and functions from the state
 fn(state => {
   delete state.commonFunctions;
