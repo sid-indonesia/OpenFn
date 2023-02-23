@@ -747,6 +747,68 @@ fn(state => {
   }
 });
 
+// Build "Observation" resource, for "Baby height measured at Posyandu"
+fn(state => {
+
+  const input = state.data;
+
+  if (input.hasOwnProperty(state.inputKey.optional.babyHeightAtPosyanduInCm)) {
+    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+    const observation = {
+      request: {
+        method: 'PUT',
+        url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
+          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
+          `-` +
+          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+          `-BABY_HEIGHT_AT_POSYANDU`,
+      },
+
+      resource: {
+        resourceType: 'Observation',
+        identifier: [
+          {
+            system: 'https://fhir.kemkes.go.id/id/observation',
+            value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
+              `-` +
+              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+              `-BABY_HEIGHT_AT_POSYANDU`
+          },
+        ],
+        status: 'final',
+        code: {
+          coding: [
+            {
+              system: 'http://loinc.org',
+              code: '3137-7',
+              display: 'Body height Measured',
+            },
+          ],
+        },
+        subject: {
+          type: 'Patient',
+          reference: state.temporaryFullUrl.patientBaby,
+        },
+        encounter: {
+          type: 'Encounter',
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+        },
+        effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
+        valueQuantity: {
+          value: Number(input[state.inputKey.optional.babyHeightAtPosyanduInCm]),
+          unit: 'cm',
+        },
+      },
+    };
+
+    return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
+  } else {
+    return state;
+  }
+});
+
 // Remove common variables and functions from the state
 fn(state => {
   delete state.commonFunctions;
