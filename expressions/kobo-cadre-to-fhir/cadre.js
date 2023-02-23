@@ -943,7 +943,7 @@ fn(state => {
   const input = state.data;
   if (input.hasOwnProperty(state.inputKey.optional.immunizationsGivenToBabyAtPosyanduSeparatedBySpace)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
-    immunizationTypeList = input[state.inputKey.optional.immunizationsGivenToBabyAtPosyanduSeparatedBySpace].split(' ');
+    const immunizationTypeList = input[state.inputKey.optional.immunizationsGivenToBabyAtPosyanduSeparatedBySpace].split(' ');
     const immunizationResources = immunizationTypeList.map(
       (immunizationType) => {
         return {
