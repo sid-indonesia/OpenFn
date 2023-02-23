@@ -877,6 +877,66 @@ fn(state => {
   }
 });
 
+// Build "Observation" resource, for "Baby Head Occipital-frontal circumference by Tape measure"
+fn(state => {
+
+  const input = state.data;
+
+  if (input.hasOwnProperty(state.inputKey.optional.dosageBabyGivenVitaminAAtPosyandu)) {
+    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+    const observation = {
+      request: {
+        method: 'PUT',
+        url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
+          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
+          `-` +
+          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+          `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
+      },
+
+      resource: {
+        resourceType: 'Observation',
+        identifier: [
+          {
+            use: 'temp',
+            system: 'https://fhir.kemkes.go.id/id/observation',
+            value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
+              `-` +
+              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+              `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`
+          },
+        ],
+        status: 'final',
+        code: {
+          coding: [
+            {
+              system: 'https://sid-indonesia.org/clinical-codes',
+              code: 'baby-dosage-vitamin-a-at-posyandu',
+              display: 'Baby dosage vitamin A at posyandu',
+            },
+          ],
+        },
+        subject: {
+          type: 'Patient',
+          reference: state.temporaryFullUrl.patientBaby,
+        },
+        encounter: {
+          type: 'Encounter',
+          reference: state.transactionBundle.entry
+            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+        },
+        effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
+        valueString: input[state.inputKey.optional.dosageBabyGivenVitaminAAtPosyandu],
+      },
+    };
+
+    return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
+  } else {
+    return state;
+  }
+});
+
 // Remove common variables and functions from the state
 fn(state => {
   delete state.commonFunctions;
