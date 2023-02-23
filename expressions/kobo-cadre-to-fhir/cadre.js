@@ -53,7 +53,7 @@ fn(state => {
     incomePerMonth: 'group_gr5be69/Pendapatan_per_bulan',
     babyBirthWeight: 'id_balita/Berat_badan_lahir',
     babyGender: 'id_balita/jenis_kelamin_balita',
-  }
+  };
 
   return state;
 });
@@ -565,6 +565,8 @@ fn(state => {
 fn(state => {
 
   const input = state.data;
+  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
   if (input.hasOwnProperty(state.inputKey.optional.incomePerMonth)) {
     const observation = {
       request: {
@@ -621,6 +623,8 @@ fn(state => {
 fn(state => {
 
   const input = state.data;
+  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
   if (input.hasOwnProperty(state.inputKey.optional.babyBirthWeight)) {
     const observation = {
       request: {
