@@ -44,7 +44,7 @@ fn(state => {
     babyBirthDate: 'id_balita/dob_balita',
     visitPosyanduDate: 'group_ho1bh03/Tanggal_Posyandu',
     isBabyGivenAdditionalFoodAtPosyandu: 'group_ho1bh03/Apakah_bayi_balita_m_mbahan_saat_posyandu',
-  }
+  };
 
   state.inputKey.optional = {
     motherBirthDate: 'group_gr5be69/Tanggal_lahir_Ibu',
