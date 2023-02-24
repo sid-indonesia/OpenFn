@@ -411,7 +411,7 @@ fn(state => {
     locationResourceDesa.partOf = {
       type: "Location",
       reference: state.temporaryFullUrl.locationKecamatan,
-    }
+    };
   }
 
   const locationDesa = {
