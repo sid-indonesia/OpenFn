@@ -27,6 +27,7 @@ fn(state => {
   };
 
   state.temporaryFullUrl = {
+    organizationSID: 'urn:uuid:organization-SID',
     patientBaby: 'urn:uuid:patient-baby',
     relatedPersonMother: 'urn:uuid:related-person-mother',
     patientMother: 'urn:uuid:patient-mother',
@@ -86,7 +87,7 @@ fn(state => {
 fn(state => {
 
   const organization = {
-    fullUrl: 'urn:uuid:Organisasi-SID',
+    fullUrl: state.temporaryFullUrl.organizationSID,
     request: {
       method: 'PUT',
       url: 'Organization?identifier=https://fhir.kemkes.go.id/id/organisasi|SID'

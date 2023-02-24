@@ -1,0 +1,20 @@
+{
+  "id_balita/dob_balita": "2023-02-25",
+  "group_pd7fc60/Penyakit_Kronis": "Only Required",
+  "id_balita/alamat_rumah": "Only Required",
+  "id_balita/nama_ortu": "Only Required",
+  "group_pd7fc60/AE": "Only Required",
+  "detil_kunjungan/tanggal_kunjungan": "2023-02-25",
+  "id_balita/NIK_ortu": "Only Required",
+  "detil_kunjungan/hasil_skrining": "sehat",
+  "id_balita/nama_balita": "Only Required",
+  "group_yp32g51/tpk": "Only Required",
+  "group_pd7fc60/MPASI": "option_1",
+  "id_balita/nomor_telepon": "Only Required",
+  "id_balita/jenis_kelamin_balita": "laki-laki",
+  "detil_kunjungan/kunjungan": "1",
+  "group_pd7fc60/idl": "option_1 option_2 option_3 option_4 option_5",
+  "group_pd7fc60/bbl": "1",
+  "detil_kunjungan/tindakan": "Only Required",
+  "group_pd7fc60/pbl": "2"
+}

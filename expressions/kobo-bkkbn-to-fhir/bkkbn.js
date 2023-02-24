@@ -23,6 +23,7 @@ fn(state => {
   };
 
   state.temporaryFullUrl = {
+    organizationBKKBN: 'urn:uuid:organization-BKKBN',
     patientBaby: 'urn:uuid:patient-baby',
     relatedPersonMother: 'urn:uuid:related-person-mother',
     patientMother: 'urn:uuid:patient-mother',
@@ -82,10 +83,10 @@ get(`${state.configuration.resource}/Patient`, {
 fn(state => {
 
   const organization = {
-    fullUrl: 'urn:uuid:Organisasi-SID',
+    fullUrl: 'urn:uuid:089812b4-82ef-4528-bb15-c551022f364e',
     request: {
       method: 'PUT',
-      url: 'Organization?identifier=https://fhir.kemkes.go.id/id/organisasi|SID'
+      url: 'Organization?identifier=https://fhir.kemkes.go.id/id/organisasi|BKKBN'
     },
 
     resource: {
@@ -94,7 +95,7 @@ fn(state => {
         {
           use: 'official',
           system: 'https://fhir.kemkes.go.id/id/organisasi',
-          value: 'SID',
+          value: 'BKKBN',
         },
       ],
       active: true,
@@ -103,16 +104,15 @@ fn(state => {
           coding: [
             {
               system: 'http://hl7.org/fhir/ValueSet/organization-type',
-              code: 'edu',
-              display: 'Educational Institute',
+              code: 'govt',
+              display: 'Government',
             },
           ],
         },
       ],
-      name: 'Summit Institute for Development',
+      name: 'Badan Kependudukan dan Keluarga Berencana Nasional (BKKBN)',
       alias: [
-        'SID',
-        'Summit',
+        'BKKBN',
       ],
     },
   };
