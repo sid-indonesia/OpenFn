@@ -4,6 +4,13 @@
   to FHIR resources and POST them to a FHIR server
 */
 
+// Debugging
+fn(state => {
+  console.log(state.configuration);
+
+  return state;
+});
+
 // Add common variables and functions here
 // Do not forget to remove them later from the `state` before actions
 fn(state => {
