@@ -24,4 +24,4 @@ get(`${state.configuration.resource}/Patient`, {
 
     return { data: state.data, lastOffset: state.lastOffset }
   }
-)
+);

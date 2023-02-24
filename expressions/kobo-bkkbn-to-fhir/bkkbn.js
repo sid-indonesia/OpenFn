@@ -5,10 +5,6 @@
 */
 
 fn(state => {
-  // Move `state.data` to `state.koboData`
-  // because `state.data` will be filled with FHIR resource(s)
-  // retrieved from FHIR server
-  state.koboData = state.data;
 
   // Add common variables and functions here
   // Do not forget to remove them later from the `state` before actions
@@ -37,7 +33,7 @@ fn(state => {
     encounterPosyandu: 'urn:uuid:encounter-posyandu',
   };
 
-  const input = state.koboData;
+  const input = state.data;
   state.inputKey = {
     required: {
       kecamatanName: 'group_yp32g51/Nama_Kecamatan',
@@ -71,16 +67,16 @@ fn(state => {
   return state;
 });
 
-// get(`${state.configuration.resource}/Organization`, {
-//   query: {
-//     identifier: 'https://fhir.kemkes.go.id/id/organisasi|SID',
-//   },
-//   headers: {
-//     'content-type': 'application/json',
-//     'accept': 'application/fhir+json',
-//     'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
-//   }
-// });
+get(`${state.configuration.resource}/Patient`, {
+  query: {
+    identifier: 'https://fhir.kemkes.go.id/id/nik|' + state.data[state.inputKey.required],
+  },
+  headers: {
+    'content-type': 'application/json',
+    'accept': 'application/fhir+json',
+    'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
+  }
+});
 
 // Build "Organization" resource, will be referenced in other resources
 fn(state => {
@@ -128,7 +124,7 @@ fn(state => {
 // http://hl7.org/fhir/R4/patient.html#maternity
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const relatedPersonResourceMother = {
@@ -288,7 +284,7 @@ fn(state => {
 // Build "Patient" resource for the baby
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const patientResourceBaby = {
@@ -339,7 +335,7 @@ fn(state => {
 // Build "Practitioner" resource for the cadre
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const practitionerResource = {
@@ -380,7 +376,7 @@ fn(state => {
 // Build "Location" resources for "Kecamatan", "Desa" and "Dusun"
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
   let locations = [];
 
@@ -480,7 +476,7 @@ fn(state => {
 // Build "Encounter" resource
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const encounter = {
@@ -533,7 +529,7 @@ fn(state => {
 // Build "Observation" resources, for "Apakah bayi/balita menerima makanan tambahan saat posyandu?"
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const babyHasReceivedAdditionalFoodAtPosyandu = input[state.inputKey.required.isBabyGivenAdditionalFoodAtPosyandu] === 'tidak' ? false : true;
@@ -594,7 +590,7 @@ fn(state => {
 // Build "Observation" resource, for "Income per month"
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
 
   if (input.hasOwnProperty(state.inputKey.optional.incomePerMonth)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
@@ -654,7 +650,7 @@ fn(state => {
 // Build "Observation" resource, for "Birth weight Measured"
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
 
   if (input.hasOwnProperty(state.inputKey.optional.babyBirthWeightInKg)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
@@ -712,7 +708,7 @@ fn(state => {
 // Build "Observation" resource, for "Baby weight measured at Posyandu"
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
 
   if (input.hasOwnProperty(state.inputKey.optional.babyWeightAtPosyanduInKg)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
@@ -775,7 +771,7 @@ fn(state => {
 // Build "Observation" resource, for "Baby height measured at Posyandu"
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
 
   if (input.hasOwnProperty(state.inputKey.optional.babyHeightAtPosyanduInCm)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
@@ -838,7 +834,7 @@ fn(state => {
 // Build "Observation" resource, for "Baby Head Occipital-frontal circumference by Tape measure"
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
 
   if (input.hasOwnProperty(state.inputKey.optional.babyHeadCircumferenceInCm)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
@@ -901,7 +897,7 @@ fn(state => {
 // Build "Observation" resource, for "Baby Head Occipital-frontal circumference by Tape measure"
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
 
   if (input.hasOwnProperty(state.inputKey.optional.dosageBabyGivenVitaminAAtPosyandu)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
@@ -961,7 +957,7 @@ fn(state => {
 // Build "Immunization" resources
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
   if (input.hasOwnProperty(state.inputKey.optional.immunizationsGivenToBabyAtPosyanduSeparatedBySpace)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
     const immunizationTypeList = input[state.inputKey.optional.immunizationsGivenToBabyAtPosyanduSeparatedBySpace].split(' ');
@@ -1028,7 +1024,7 @@ fn(state => {
 // Build other "Immunization" resource, if specified
 fn(state => {
 
-  const input = state.koboData;
+  const input = state.data;
   if (input.hasOwnProperty(state.inputKey.optional.otherImmunizationsGivenToBabyAtPosyandu)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
     const otherImmunizationType = input[state.inputKey.optional.otherImmunizationsGivenToBabyAtPosyandu];
@@ -1094,9 +1090,6 @@ fn(state => {
   delete state.commonFunctions;
   delete state.temporaryFullUrl;
   delete state.inputKey;
-
-  state.data = state.koboData;
-  delete state.koboData;
 
   return state;
 });
