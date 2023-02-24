@@ -366,29 +366,7 @@ fn(state => {
 
   const input = state.data;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
-
-  const locationResourceKecamatan = {
-    resourceType: 'Location',
-    identifier: [
-      {
-        use: 'temp',
-        system: 'https://fhir.kemkes.go.id/id/temp-identifier-kecamatan-name',
-        value: `${trimSpacesTitleCase(input[state.inputKey.required.kecamatanName]).replace(/ /g, "_")}`,
-      },
-    ],
-    name: trimSpacesTitleCase(input[state.inputKey.required.kecamatanName]),
-  };
-
-  const locationKecamatan = {
-    fullUrl: state.temporaryFullUrl.locationKecamatan, // will be referenced in other resources
-    request: {
-      method: 'PUT',
-      url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-kecamatan-name|` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.kecamatanName]).replace(/ /g, "_")}`
-    },
-
-    resource: locationResourceKecamatan
-  };
+  let locations = [];
 
   const locationResourceDesa = {
     resourceType: 'Location',
@@ -400,11 +378,41 @@ fn(state => {
       },
     ],
     name: trimSpacesTitleCase(input[state.inputKey.required.desaName]),
-    partOf: {
+  };
+
+  // Because Kecamatan was previously a "free text" field in the form,
+  // now it is a "Select One" type of question
+  // and has a bit different property name in the JSON
+  if (input.hasOwnProperty(state.inputKey.required.kecamatanName)) {
+    const locationResourceKecamatan = {
+      resourceType: 'Location',
+      identifier: [
+        {
+          use: 'temp',
+          system: 'https://fhir.kemkes.go.id/id/temp-identifier-kecamatan-name',
+          value: `${trimSpacesTitleCase(input[state.inputKey.required.kecamatanName]).replace(/ /g, "_")}`,
+        },
+      ],
+      name: trimSpacesTitleCase(input[state.inputKey.required.kecamatanName]),
+    };
+
+    const locationKecamatan = {
+      fullUrl: state.temporaryFullUrl.locationKecamatan, // will be referenced in other resources
+      request: {
+        method: 'PUT',
+        url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-kecamatan-name|` +
+          `${trimSpacesTitleCase(input[state.inputKey.required.kecamatanName]).replace(/ /g, "_")}`
+      },
+
+      resource: locationResourceKecamatan
+    };
+
+    locations.push(locationKecamatan);
+    locationResourceDesa.partOf = {
       type: "Location",
       reference: state.temporaryFullUrl.locationKecamatan,
     }
-  };
+  }
 
   const locationDesa = {
     fullUrl: state.temporaryFullUrl.locationDesa, // will be referenced in other resources
@@ -448,12 +456,9 @@ fn(state => {
     resource: locationResourceDusun
   };
 
-  return {
-    ...state, transactionBundle: {
-      entry: [...state.transactionBundle.entry,
-        locationKecamatan, locationDesa, locationDusun]
-    }
-  };
+  locations.push(locationDesa, locationDusun);
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, ...locations] } };
 });
 
 // Build "Encounter" resource
