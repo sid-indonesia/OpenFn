@@ -221,8 +221,8 @@ fn(state => {
     ];
   }
 
-  if (input.hasOwnProperty(state.inputKey.optional.isBabyGivenAdditionalFoodAtPosyandu)) {
-    patientResourceMother.birthDate = input[state.inputKey.optional.isBabyGivenAdditionalFoodAtPosyandu];
+  if (input.hasOwnProperty(state.inputKey.optional.motherBirthDate)) {
+    patientResourceMother.birthDate = input[state.inputKey.optional.motherBirthDate];
 
     relatedPersonResourceMother.birthDate = patientResourceMother.birthDate;
   }
