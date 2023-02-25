@@ -10,6 +10,12 @@ fn(state => {
   // retrieved from FHIR server
   state.koboData = state.data;
 
+  state.configuration.headersForFHIRServer = {
+    'Content-Type': 'application/fhir+json',
+    'Accept': 'application/fhir+json',
+    'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
+  }
+
   // Add common variables and functions here
   // Do not forget to remove them later from the `state` before actions
   state.commonFunctions = {
@@ -68,6 +74,14 @@ fn(state => {
       }
     },
 
+    checkMoreThanOneResourceByIdentifier: (state) => {
+      if (state.data.total > 1) {
+        throw new Error('We found more than one: "' +
+          state.data.entry[0].resource.resourceType + '" resources with identifier ' +
+          JSON.stringify(state.data.entry[0].resource.identifier) + ', aborting POST transaction bundle');
+      }
+    }
+
   };
 
   state.temporaryFullUrl = {
@@ -122,19 +136,10 @@ get(`${state.configuration.resource}/Organization`,
     query: {
       identifier: 'https://fhir.kemkes.go.id/id/organisasi|SID',
     },
-    headers: {
-      'content-type': 'application/fhir+json',
-      'accept': 'application/fhir+json',
-      'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
-    },
+    headers: state.configuration.headersForFHIRServer,
   },
   state => {
-    if (state.data.total > 1) {
-      throw new Error('We found more than one: "' +
-        state.data.entry[0].resource.resourceType + '" resources with identifier ' +
-        JSON.stringify(state.data.entry[0].resource.identifier) + ', aborting POST transaction bundle');
-    }
-
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
     return state;
   }
 );
@@ -187,8 +192,8 @@ fn(state => {
 
 fn(state => {
   state.queryIdentifier = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.motherName]).replace(/ /g, "_") +
-        `-` +
-        state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.babyName]).replace(/ /g, "_");
+    `-` +
+    state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.babyName]).replace(/ /g, "_");
   return state;
 });
 
@@ -199,19 +204,10 @@ get(`${state.configuration.resource}/RelatedPerson`,
       identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
         sourceValue('queryIdentifier')(state),
     },
-    headers: {
-      'content-type': 'application/fhir+json',
-      'accept': 'application/fhir+json',
-      'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
-    },
+    headers: state.configuration.headersForFHIRServer,
   },
   state => {
-    if (state.data.total > 1) {
-      throw new Error('We found more than one: "' +
-        state.data.entry[0].resource.resourceType + '" resources with identifier ' +
-        JSON.stringify(state.data.entry[0].resource.identifier) + ', aborting POST transaction bundle');
-    }
-
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
     return state;
   }
 );
@@ -1234,9 +1230,6 @@ post(
   state.configuration.resource,
   {
     body: sourceValue('transactionBundle'),
-    headers: {
-      'Content-Type': 'application/fhir+json',
-      'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
-    },
+    headers: state.configuration.headersForFHIRServer,
   }
 );
