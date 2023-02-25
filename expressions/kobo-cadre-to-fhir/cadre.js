@@ -44,11 +44,11 @@ fn(state => {
       }
     },
 
-    mergeNewlyCompiledResourceWithTheOneFromServer: (resourceNewlyCompiled, resourceFromServer) => {
+    mergeResourceFromServerWithNewlyCompiledResource: (resourceFromServer, resourceNewlyCompiled) => {
       const arrayKeys = Object.keys(resourceNewlyCompiled).filter(key => Array.isArray(resourceNewlyCompiled[key]));
       const mergedArrays = {};
       for (const key of arrayKeys) {
-        mergedArrays[key] = state.commonFunctions.mergeArrayAndRemoveDuplicates(resourceNewlyCompiled[key], resourceFromServer[key]);
+        mergedArrays[key] = state.commonFunctions.mergeArrayAndRemoveDuplicates(resourceFromServer[key], resourceNewlyCompiled[key]);
       }
 
       return {
@@ -169,8 +169,8 @@ fn(state => {
   };
 
   if (state.data.hasOwnProperty('entry')) {
-    const theResourceFromServer = state.data.entry[0].resource;
-    const mergedResource = state.commonFunctions.mergeNewlyCompiledResourceWithTheOneFromServer(organizationResource, theResourceFromServer);
+    const resourceFromServer = state.data.entry[0].resource;
+    const mergedResource = state.commonFunctions.mergeResourceFromServerWithNewlyCompiledResource(resourceFromServer, organizationResource);
     organization.resource = mergedResource;
   } else {
     organization.resource = organizationResource;
