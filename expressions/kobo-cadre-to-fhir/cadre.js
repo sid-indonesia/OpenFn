@@ -76,7 +76,7 @@ fn(state => {
         mergedArrays[key] = state.commonFunctions.mergeArrayAndRemoveDuplicates(resourceFromServer[key], resourceNewlyCompiled[key]);
       }
 
-      nestedArrayKeys = Object.keys(resourceNewlyCompiled).filter(key => {
+      const nestedArrayKeys = Object.keys(resourceNewlyCompiled).filter(key => {
         const value = resourceNewlyCompiled[key];
         return typeof value === 'object' && value !== null && !Array.isArray(value) && Object.values(value).some(v => Array.isArray(v));
       });
@@ -231,9 +231,9 @@ fn(state => {
     `-` +
     state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.cadreName]).replace(/ /g, "_");
 
-  state.configuration.queryIdentifierKecamatan = state.commonFunctions.trimSpacesTitleCase(input[state.inputKey.required.kecamatanName]).replace(/ /g, "_");
+  state.configuration.queryIdentifierKecamatan = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.kecamatanName]).replace(/ /g, "_");
 
-  state.configuration.queryIdentifierDesa = state.commonFunctions.trimSpacesTitleCase(input[state.inputKey.required.desaName]).replace(/ /g, "_");
+  state.configuration.queryIdentifierDesa = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.desaName]).replace(/ /g, "_");
 
   state.configuration.queryIdentifierDusunDesa = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.dusunName]).replace(/ /g, "_") +
     `-` +
