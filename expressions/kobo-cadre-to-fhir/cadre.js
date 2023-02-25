@@ -147,8 +147,6 @@ get(`${state.configuration.resource}/Organization`,
 // Build "Organization" resource, will be referenced in other resources
 fn(state => {
 
-  const mergeResourceIfFoundInServer = state.commonFunctions.mergeResourceIfFoundInServer;
-
   const organizationResource = {
     resourceType: 'Organization',
     identifier: [
@@ -185,7 +183,7 @@ fn(state => {
     },
   };
 
-  organization.resource = mergeResourceIfFoundInServer(state, organizationResource);
+  organization.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, organizationResource);
 
   return { ...state, transactionBundle: { entry: [organization] } };
 });
@@ -287,7 +285,7 @@ fn(state => {
     },
   };
 
-  relatedPersonMother.resource = mergeResourceIfFoundInServer(state, relatedPersonResourceMother);
+  relatedPersonMother.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, relatedPersonResourceMother);
 
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, relatedPersonMother] } };
 });
