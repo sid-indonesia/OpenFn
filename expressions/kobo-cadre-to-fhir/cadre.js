@@ -187,30 +187,30 @@ fn(state => {
 });
 
 // GET "RelatedPerson" resource of the mother by identifier from server first
-get(`${state.configuration.resource}/RelatedPerson`,
-  {
-    query: {
-      identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        sourceValue('commonFunctions')(state).trimSpacesTitleCase(sourceValue('koboData')(state)[sourceValue('inputKey')(state).required.motherName]).replace(/ /g, "_") +
-        `-` +
-        sourceValue('commonFunctions')(state).trimSpacesTitleCase(sourceValue('koboData')(state)[sourceValue('$.inputKey')(state).required.babyName]).replace(/ /g, "_"),
-    },
-    headers: {
-      'content-type': 'application/fhir+json',
-      'accept': 'application/fhir+json',
-      'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
-    },
-  },
-  state => {
-    if (state.data.total > 1) {
-      throw new Error('We found more than one: "' +
-        state.data.entry[0].resource.resourceType + '" resources with identifier ' +
-        JSON.stringify(state.data.entry[0].resource.identifier) + ', aborting POST transaction bundle');
-    }
+// get(`${state.configuration.resource}/RelatedPerson`,
+//   {
+//     query: {
+//       identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
+//         sourceValue('commonFunctions')(state).trimSpacesTitleCase(sourceValue('koboData')(state)[sourceValue('inputKey')(state).required.motherName]).replace(/ /g, "_") +
+//         `-` +
+//         sourceValue('commonFunctions')(state).trimSpacesTitleCase(sourceValue('koboData')(state)[sourceValue('$.inputKey')(state).required.babyName]).replace(/ /g, "_"),
+//     },
+//     headers: {
+//       'content-type': 'application/fhir+json',
+//       'accept': 'application/fhir+json',
+//       'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
+//     },
+//   },
+//   state => {
+//     if (state.data.total > 1) {
+//       throw new Error('We found more than one: "' +
+//         state.data.entry[0].resource.resourceType + '" resources with identifier ' +
+//         JSON.stringify(state.data.entry[0].resource.identifier) + ', aborting POST transaction bundle');
+//     }
 
-    return state;
-  }
-);
+//     return state;
+//   }
+// );
 
 // Build "RelatedPerson" resource for the mother
 // http://hl7.org/fhir/R4/patient.html#maternity
