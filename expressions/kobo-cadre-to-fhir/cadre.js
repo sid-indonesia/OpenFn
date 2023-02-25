@@ -197,7 +197,7 @@ get(`${state.configuration.resource}/RelatedPerson`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        sourceValue('queryIdentifier'),
+        sourceValue('queryIdentifier')(state),
     },
     headers: {
       'content-type': 'application/fhir+json',
