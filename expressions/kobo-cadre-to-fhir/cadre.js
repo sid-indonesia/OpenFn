@@ -191,7 +191,7 @@ fn(state => {
 });
 
 fn(state => {
-  state.queryIdentifier = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.motherName]).replace(/ /g, "_") +
+  state.configuration.queryIdentifier = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.motherName]).replace(/ /g, "_") +
     `-` +
     state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.babyName]).replace(/ /g, "_");
   return state;
@@ -202,7 +202,7 @@ get(`${state.configuration.resource}/RelatedPerson`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        sourceValue('queryIdentifier')(state),
+        state.configuration.queryIdentifier,
     },
     headers: state.configuration.headersForFHIRServer,
   },
@@ -1206,8 +1206,6 @@ fn(state => {
 
   state.data = state.koboData;
   delete state.koboData;
-
-  delete state.queryIdentifier;
 
   return state;
 });
