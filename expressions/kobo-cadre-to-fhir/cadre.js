@@ -50,6 +50,25 @@ fn(state => {
       }
     },
 
+    mergeNestedArrayAndRemoveDuplicates: (obj1, obj2) => {
+      const mergedObj = {};
+
+      // Merge all properties from both objects
+      for (const key of Object.keys(obj1).concat(Object.keys(obj2))) {
+        const value1 = obj1[key];
+        const value2 = obj2[key];
+        if (Array.isArray(value1) && Array.isArray(value2)) {
+          // If the property is an array, merge it and remove duplicates
+          mergedObj[key] = state.commonFunctions.mergeArrayAndRemoveDuplicates(value1, value2);
+        } else {
+          // Otherwise, use the value from the second object (obj2) to overwrite the value in the first object (obj1)
+          mergedObj[key] = value2;
+        }
+      }
+
+      return mergedObj;
+    },
+
     mergeResourceFromServerWithNewlyCompiledResource: (resourceFromServer, resourceNewlyCompiled) => {
       const arrayKeys = Object.keys(resourceNewlyCompiled).filter(key => Array.isArray(resourceNewlyCompiled[key]));
       const mergedArrays = {};
@@ -57,10 +76,20 @@ fn(state => {
         mergedArrays[key] = state.commonFunctions.mergeArrayAndRemoveDuplicates(resourceFromServer[key], resourceNewlyCompiled[key]);
       }
 
+      nestedArrayKeys = Object.keys(resourceNewlyCompiled).filter(key => {
+        const value = resourceNewlyCompiled[key];
+        return typeof value === 'object' && value !== null && !Array.isArray(value) && Object.values(value).some(v => Array.isArray(v));
+      });
+      const mergedNestedArrays = {};
+      for (const key of nestedArrayKeys) {
+        mergedNestedArrays[key] = state.commonFunctions.mergeNestedArrayAndRemoveDuplicates(resourceFromServer[key], resourceNewlyCompiled[key]);
+      }
+
       return {
         ...resourceFromServer,
         ...resourceNewlyCompiled,
-        ...mergedArrays
+        ...mergedArrays,
+        ...mergedNestedArrays
       };
     },
 
