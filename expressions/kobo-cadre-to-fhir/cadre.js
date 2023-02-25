@@ -190,9 +190,9 @@ get(`${state.configuration.resource}/RelatedPerson`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        `${sourceValue('commonFunctions.trimSpacesTitleCase')(sourceValue('koboData')[sourceValue('inputKey.required.motherName')]).replace(/ /g, "_")}` +
+        `${sourceValue('$.commonFunctions.trimSpacesTitleCase')(sourceValue('koboData')[sourceValue('$.inputKey.required.motherName')]).replace(/ /g, "_")}` +
         `-` +
-        `${sourceValue('commonFunctions.trimSpacesTitleCase')(sourceValue('koboData')[sourceValue('inputKey.required.babyName')]).replace(/ /g, "_")}`,
+        `${sourceValue('$.commonFunctions.trimSpacesTitleCase')(sourceValue('koboData')[sourceValue('$.inputKey.required.babyName')]).replace(/ /g, "_")}`,
     },
     headers: {
       'content-type': 'application/fhir+json',
@@ -202,7 +202,6 @@ get(`${state.configuration.resource}/RelatedPerson`,
   },
   state => {
     if (state.data.total > 1) {
-      console.log(state.data);
       throw new Error('We found more than one: "' +
         state.data.entry[0].resource.resourceType + '" resources with identifier ' +
         JSON.stringify(state.data.entry[0].resource.identifier) + ', aborting POST transaction bundle');
