@@ -202,6 +202,7 @@ get(`${state.configuration.resource}/RelatedPerson`,
   },
   state => {
     if (state.data.total > 1) {
+      console.log(state.data);
       throw new Error('We found more than one: "' +
         state.data.entry[0].resource.resourceType + '" resources with identifier ' +
         JSON.stringify(state.data.entry[0].resource.identifier) + ', aborting POST transaction bundle');
