@@ -93,7 +93,8 @@ fn(state => {
     locationKecamatan: 'urn:uuid:location-kecamatan',
     locationDesa: 'urn:uuid:location-desa',
     locationDusun: 'urn:uuid:location-dusun',
-    encounterPosyandu: 'urn:uuid:encounter-posyandu',
+    encounterPosyanduBaby: 'urn:uuid:encounter-posyandu-baby',
+    encounterPosyanduMother: 'urn:uuid:encounter-posyandu-mother',
   };
 
   const input = state.koboData;
@@ -189,9 +190,26 @@ fn(state => {
 });
 
 fn(state => {
-  state.configuration.queryIdentifier = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.motherName]).replace(/ /g, "_") +
+  state.configuration.queryIdentifierMotherBaby = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.motherName]).replace(/ /g, "_") +
     `-` +
     state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.babyName]).replace(/ /g, "_");
+
+  state.configuration.queryIdentifierBabyMother = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.babyName]).replace(/ /g, "_") +
+    `-` +
+    state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.motherName]).replace(/ /g, "_");
+
+  state.configuration.queryIdentifierDesaCadre = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.desaName]).replace(/ /g, "_") +
+    `-` +
+    state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.cadreName]).replace(/ /g, "_");
+
+  state.configuration.queryIdentifierKecamatan = state.commonFunctions.trimSpacesTitleCase(input[state.inputKey.required.kecamatanName]).replace(/ /g, "_");
+
+  state.configuration.queryIdentifierDesa = state.commonFunctions.trimSpacesTitleCase(input[state.inputKey.required.desaName]).replace(/ /g, "_");
+
+  state.configuration.queryIdentifierDusunDesa = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.dusunName]).replace(/ /g, "_") +
+    `-` +
+    state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.desaName]).replace(/ /g, "_");
+
   return state;
 });
 
@@ -200,7 +218,7 @@ get(`${state.configuration.resource}/RelatedPerson`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        state.configuration.queryIdentifier,
+        state.configuration.queryIdentifierMotherBaby,
     },
     headers: state.configuration.headersForFHIRServer,
   },
@@ -213,7 +231,6 @@ get(`${state.configuration.resource}/RelatedPerson`,
 // Build "RelatedPerson" resource for the mother
 // http://hl7.org/fhir/R4/patient.html#maternity
 fn(state => {
-
   const input = state.koboData;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
@@ -223,9 +240,7 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name',
-        value: `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}`,
+        value: state.configuration.queryIdentifierMotherBaby,
       },
     ],
     patient: {
@@ -275,13 +290,11 @@ fn(state => {
   }
 
   const relatedPersonMother = {
-    fullUrl: state.temporaryFullUrl.relatedPersonMother, // will be referenced in other resources
+    fullUrl: state.temporaryFullUrl.relatedPersonMother,
     request: {
       method: 'PUT',
       url: `RelatedPerson?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-        `-` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}`,
+        state.configuration.queryIdentifierMotherBaby,
     },
   };
 
@@ -290,10 +303,24 @@ fn(state => {
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, relatedPersonMother] } };
 });
 
+// GET "Patient" resource of the mother by identifier from server first
+get(`${state.configuration.resource}/Patient`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
+        state.configuration.queryIdentifierMotherBaby,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
 // Build "Patient" resource for the mother
 // http://hl7.org/fhir/R4/patient.html#maternity
 fn(state => {
-
   const input = state.koboData;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
@@ -303,9 +330,7 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name',
-        value: `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}`,
+        value: state.configuration.queryIdentifierMotherBaby,
       },
     ],
     name: [
@@ -323,8 +348,7 @@ fn(state => {
     ],
     managingOrganization: {
       type: 'Organization',
-      reference: state.transactionBundle.entry
-        .find(e => e.resource.resourceType === 'Organization').fullUrl, // same as "SID" Organization's `fullurl`
+      reference: state.temporaryFullUrl.organizationSID,
     },
     link: [
       {
@@ -377,24 +401,36 @@ fn(state => {
   }
 
   const patientMother = {
-    fullUrl: state.temporaryFullUrl.patientMother, // will be referenced in other resources
+    fullUrl: state.temporaryFullUrl.patientMother,
     request: {
       method: 'PUT',
       url: `Patient?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-        `-` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}`,
+        state.configuration.queryIdentifierMotherBaby,
     },
-
-    resource: patientResourceMother
   };
+
+  patientMother.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, patientResourceMother);
 
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, patientMother] } };
 });
 
+// GET "Patient" resource of the baby by identifier from server first
+get(`${state.configuration.resource}/Patient`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/temp-identifier-baby-name-and-mother-name|` +
+        state.configuration.queryIdentifierBabyMother,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
 // Build "Patient" resource for the baby
 fn(state => {
-
   const input = state.koboData;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
@@ -404,9 +440,7 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-baby-name-and-mother-name',
-        value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}`,
+        value: state.configuration.queryIdentifierBabyMother,
       },
     ],
     name: [
@@ -418,8 +452,7 @@ fn(state => {
     birthDate: input[state.inputKey.required.babyBirthDate],
     managingOrganization: {
       type: 'Organization',
-      reference: state.transactionBundle.entry
-        .find(e => e.resource.resourceType === 'Organization').fullUrl, // same as "SID" Organization's `fullurl`
+      reference: state.temporaryFullUrl.organizationSID, // same as "SID" Organization's `fullurl`
     },
   };
 
@@ -428,24 +461,36 @@ fn(state => {
   }
 
   const patientBaby = {
-    fullUrl: state.temporaryFullUrl.patientBaby, // will be referenced in other resources
+    fullUrl: state.temporaryFullUrl.patientBaby,
     request: {
       method: 'PUT',
       url: `Patient?identifier=https://fhir.kemkes.go.id/id/temp-identifier-baby-name-and-mother-name|` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-        `-` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}`,
+        state.configuration.queryIdentifierBabyMother,
     },
-
-    resource: patientResourceBaby
   };
+
+  patientBaby.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, patientResourceBaby);
 
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, patientBaby] } };
 });
 
+// GET "Practitioner" resource of the cadre by identifier from server first
+get(`${state.configuration.resource}/Practitioner`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/temp-identifier-desa-name-and-cadre-name|` +
+        state.configuration.queryIdentifierDesaCadre,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
 // Build "Practitioner" resource for the cadre
 fn(state => {
-
   const input = state.koboData;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
@@ -455,9 +500,7 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-desa-name-and-cadre-name',
-        value: `${trimSpacesTitleCase(input[state.inputKey.required.desaName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.cadreName]).replace(/ /g, "_")}`,
+        value: state.configuration.queryIdentifierDesaCadre,
       },
     ],
     name: [
@@ -469,39 +512,38 @@ fn(state => {
   };
 
   const practitionerCadre = {
-    fullUrl: state.temporaryFullUrl.practitionerCadre, // will be referenced in other resources
+    fullUrl: state.temporaryFullUrl.practitionerCadre,
     request: {
       method: 'PUT',
       url: `Practitioner?identifier=https://fhir.kemkes.go.id/id/temp-identifier-desa-name-and-cadre-name|` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.desaName]).replace(/ /g, "_")}` +
-        `-` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.cadreName]).replace(/ /g, "_")}`,
+        state.configuration.queryIdentifierDesaCadre,
     },
-
-    resource: practitionerResource
   };
+
+  practitionerCadre.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, practitionerResource);
 
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, practitionerCadre] } };
 });
 
-// Build "Location" resources for "Kecamatan", "Desa" and "Dusun"
-fn(state => {
+// GET "Location" resource of the Kecamatan by identifier from server first
+get(`${state.configuration.resource}/Location`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/temp-identifier-kecamatan-name|` +
+        state.configuration.queryIdentifierKecamatan,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
 
+// Build "Location" resources for "Kecamatan"
+fn(state => {
   const input = state.koboData;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
-  let locations = [];
-
-  const locationResourceDesa = {
-    resourceType: 'Location',
-    identifier: [
-      {
-        use: 'temp',
-        system: 'https://fhir.kemkes.go.id/id/temp-identifier-desa-name',
-        value: `${trimSpacesTitleCase(input[state.inputKey.required.desaName]).replace(/ /g, "_")}`,
-      },
-    ],
-    name: trimSpacesTitleCase(input[state.inputKey.required.desaName]),
-  };
 
   // Because Kecamatan was previously a "free text" field in the form,
   // now it is a "Select One" type of question
@@ -513,24 +555,62 @@ fn(state => {
         {
           use: 'temp',
           system: 'https://fhir.kemkes.go.id/id/temp-identifier-kecamatan-name',
-          value: `${trimSpacesTitleCase(input[state.inputKey.required.kecamatanName]).replace(/ /g, "_")}`,
+          value: state.configuration.queryIdentifierKecamatan,
         },
       ],
       name: trimSpacesTitleCase(input[state.inputKey.required.kecamatanName]),
     };
 
     const locationKecamatan = {
-      fullUrl: state.temporaryFullUrl.locationKecamatan, // will be referenced in other resources
+      fullUrl: state.temporaryFullUrl.locationKecamatan,
       request: {
         method: 'PUT',
         url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-kecamatan-name|` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.kecamatanName]).replace(/ /g, "_")}`
+          state.configuration.queryIdentifierKecamatan,
       },
-
-      resource: locationResourceKecamatan
     };
 
-    locations.push(locationKecamatan);
+    locationKecamatan.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, locationResourceKecamatan);
+    return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, locationKecamatan] } };
+  } else {
+    return state;
+  }
+});
+
+// GET "Location" resource of the Desa by identifier from server first
+get(`${state.configuration.resource}/Location`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/temp-identifier-desa-name|` +
+        state.configuration.queryIdentifierDesa,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
+// Build "Location" resources for "Desa"
+fn(state => {
+  const input = state.koboData;
+  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+  const locationResourceDesa = {
+    resourceType: 'Location',
+    identifier: [
+      {
+        use: 'temp',
+        system: 'https://fhir.kemkes.go.id/id/temp-identifier-desa-name',
+        value: state.configuration.queryIdentifierDesa,
+      },
+    ],
+    name: trimSpacesTitleCase(input[state.inputKey.required.desaName]),
+  };
+
+  // Because Kecamatan was previously a "free text" field in the form
+  if (input.hasOwnProperty(state.inputKey.required.kecamatanName)) {
     locationResourceDesa.partOf = {
       type: "Location",
       reference: state.temporaryFullUrl.locationKecamatan,
@@ -538,15 +618,38 @@ fn(state => {
   }
 
   const locationDesa = {
-    fullUrl: state.temporaryFullUrl.locationDesa, // will be referenced in other resources
+    fullUrl: state.temporaryFullUrl.locationDesa,
     request: {
       method: 'PUT',
       url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-desa-name|` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.desaName]).replace(/ /g, "_")}`
+        state.configuration.queryIdentifierDesa,
     },
-
-    resource: locationResourceDesa
   };
+
+  locationDesa.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, locationResourceDesa);
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, locationDesa] } };
+});
+
+// GET "Location" resource of the Dusun by identifier from server first
+get(`${state.configuration.resource}/Location`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/temp-identifier-dusun-name-and-desa-name|` +
+        state.configuration.queryIdentifierDusunDesa,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
+// Build "Location" resources for "Dusun"
+fn(state => {
+  const input = state.koboData;
+  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const locationResourceDusun = {
     resourceType: 'Location',
@@ -554,9 +657,7 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/temp-identifier-dusun-name-and-desa-name',
-        value: `${trimSpacesTitleCase(input[state.inputKey.required.dusunName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.desaName]).replace(/ /g, "_")}`,
+        value: state.configuration.queryIdentifierDusunDesa,
       },
     ],
     name: trimSpacesTitleCase(input[state.inputKey.required.dusunName]),
@@ -567,85 +668,164 @@ fn(state => {
   };
 
   const locationDusun = {
-    fullUrl: state.temporaryFullUrl.locationDusun, // will be referenced in other resources
+    fullUrl: state.temporaryFullUrl.locationDusun,
     request: {
       method: 'PUT',
       url: `Location?identifier=https://fhir.kemkes.go.id/id/temp-identifier-dusun-name-and-desa-name|` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.dusunName]).replace(/ /g, "_")}` +
-        `-` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.desaName]).replace(/ /g, "_")}`,
+        state.configuration.queryIdentifierDusunDesa,
     },
-
-    resource: locationResourceDusun
   };
 
-  locations.push(locationDesa, locationDusun);
+  locationDusun.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, locationResourceDusun);
 
-  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, ...locations] } };
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, locationDusun] } };
 });
 
-// Build "Encounter" resource
-fn(state => {
+// GET "Encounter" resource of Posyandu Visit for the mother by identifier from server first
+get(`${state.configuration.resource}/Encounter`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/encounter|` +
+        state.configuration.queryIdentifierMotherBaby + `-MOTHER_POSYANDU_VISIT`,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
 
-  const input = state.koboData;
-  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+// Build "Encounter" resource for the mother
+// http://hl7.org/fhir/R4/patient.html#maternity
+fn(state => {
+  const encounterResource = {
+    resourceType: 'Encounter',
+    status: 'finished',
+    class: {
+      system: 'http://terminology.hl7.org/ValueSet/v3-ActEncounterCode',
+      code: 'AMB',
+      display: 'ambulatory',
+    },
+    identifier: [
+      {
+        use: 'temp',
+        system: 'https://fhir.kemkes.go.id/id/encounter',
+        value: state.configuration.queryIdentifierMotherBaby + `-MOTHER_POSYANDU_VISIT`,
+      },
+    ],
+    subject: {
+      type: 'Patient',
+      reference: state.temporaryFullUrl.patientMother,
+    },
+    location: [
+      {
+        location: {
+          type: 'Location',
+          reference: state.temporaryFullUrl.locationDusun,
+        }
+      }
+    ],
+  };
 
   const encounter = {
-    fullUrl: state.temporaryFullUrl.encounterPosyandu, // will be referenced in other resources
+    fullUrl: state.temporaryFullUrl.encounterPosyanduMother,
     request: {
       method: 'PUT',
       url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-        `-` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-        `-BABY_POSYANDU_VISIT`,
-    },
-
-    resource: {
-      resourceType: 'Encounter',
-      status: 'finished',
-      class: {
-        system: 'http://terminology.hl7.org/ValueSet/v3-ActEncounterCode',
-        code: 'AMB',
-        display: 'ambulatory',
-      },
-      identifier: [
-        {
-          use: 'temp',
-          system: 'https://fhir.kemkes.go.id/id/encounter',
-          value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-            `-` +
-            `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-            `-BABY_POSYANDU_VISIT`,
-        },
-      ],
-      subject: {
-        type: 'Patient',
-        reference: state.temporaryFullUrl.patientBaby,
-      },
-      location: [
-        {
-          location: {
-            type: 'Location',
-            reference: state.temporaryFullUrl.locationDusun,
-          }
-        }
-      ],
+        state.configuration.queryIdentifierMotherBaby + `-MOTHER_POSYANDU_VISIT`,
     },
   };
+
+  encounter.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, encounterResource);
 
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, encounter] } };
 });
 
+// GET "Encounter" resource of Posyandu Visit for the baby by identifier from server first
+get(`${state.configuration.resource}/Encounter`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/encounter|` +
+        state.configuration.queryIdentifierBabyMother + `-BABY_POSYANDU_VISIT`,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
+// Build "Encounter" resource for the baby
+fn(state => {
+  const encounterResource = {
+    resourceType: 'Encounter',
+    status: 'finished',
+    class: {
+      system: 'http://terminology.hl7.org/ValueSet/v3-ActEncounterCode',
+      code: 'AMB',
+      display: 'ambulatory',
+    },
+    identifier: [
+      {
+        use: 'temp',
+        system: 'https://fhir.kemkes.go.id/id/encounter',
+        value: state.configuration.queryIdentifierBabyMother + `-BABY_POSYANDU_VISIT`,
+      },
+    ],
+    subject: {
+      type: 'Patient',
+      reference: state.temporaryFullUrl.patientBaby,
+    },
+    location: [
+      {
+        location: {
+          type: 'Location',
+          reference: state.temporaryFullUrl.locationDusun,
+        }
+      }
+    ],
+    partOf: {
+      type: 'Encounter',
+      reference: state.temporaryFullUrl.encounterPosyanduMother
+    }
+  };
+
+  const encounter = {
+    fullUrl: state.temporaryFullUrl.encounterPosyanduBaby,
+    request: {
+      method: 'PUT',
+      url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|` +
+        state.configuration.queryIdentifierBabyMother + `-BABY_POSYANDU_VISIT`,
+    },
+  };
+
+  encounter.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, encounterResource);
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, encounter] } };
+});
+
+// GET "Observation" resource of Baby Received Additional Food by identifier from server first
+get(`${state.configuration.resource}/Observation`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierBabyMother + `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
 // Build "Observation" resources, for "Apakah bayi/balita menerima makanan tambahan saat posyandu?"
 fn(state => {
-
   const input = state.koboData;
-  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const babyHasReceivedAdditionalFoodAtPosyandu = input[state.inputKey.required.isBabyGivenAdditionalFoodAtPosyandu] === 'tidak' ? false : true;
-
-  let observations = [];
 
   const observationResource = {
     resourceType: 'Observation',
@@ -653,10 +833,7 @@ fn(state => {
       {
         use: 'temp',
         system: 'https://fhir.kemkes.go.id/id/observation',
-        value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-          `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
+        value: state.configuration.queryIdentifierBabyMother + `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
       },
     ],
     status: 'final',
@@ -675,266 +852,295 @@ fn(state => {
     },
     encounter: {
       type: 'Encounter',
-      reference: state.transactionBundle.entry
-        .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+      reference: state.temporaryFullUrl.encounterPosyanduBaby,
     },
     effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
     valueBoolean: babyHasReceivedAdditionalFoodAtPosyandu,
   };
 
-  observations.push({
+  const observation = {
     request: {
       method: 'PUT',
       url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-        `-` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-        `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
+        state.configuration.queryIdentifierBabyMother + `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
     },
+  };
 
-    resource: observationResource,
-  });
+  observation.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, observationResource);
 
-  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, ...observations] } };
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
 });
+
+// GET "Observation" resource of "Income per month" by identifier from server first
+get(`${state.configuration.resource}/Observation`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierBabyMother + `-INCOME_PER_MONTH`,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
 
 // Build "Observation" resource, for "Income per month"
 fn(state => {
-
   const input = state.koboData;
 
   if (input.hasOwnProperty(state.inputKey.optional.incomePerMonth)) {
-    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+    const observationResource = {
+      resourceType: 'Observation',
+      identifier: [
+        {
+          use: 'temp',
+          system: 'https://fhir.kemkes.go.id/id/observation',
+          value: state.configuration.queryIdentifierBabyMother + `-INCOME_PER_MONTH`,
+        },
+      ],
+      status: 'final',
+      code: {
+        coding: [
+          {
+            system: 'https://sid-indonesia.org/clinical-codes',
+            code: 'income-per-month',
+            display: 'Income per month',
+          },
+        ],
+      },
+      subject: {
+        type: 'Patient',
+        reference: state.temporaryFullUrl.patientMother,
+      },
+      encounter: {
+        type: 'Encounter',
+        reference: state.temporaryFullUrl.encounterPosyanduMother,
+      },
+      effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
+      valueString: input[state.inputKey.optional.incomePerMonth]
+    };
 
     const observation = {
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-          `-INCOME_PER_MONTH`,
-      },
-
-      resource: {
-        resourceType: 'Observation',
-        identifier: [
-          {
-            use: 'temp',
-            system: 'https://fhir.kemkes.go.id/id/observation',
-            value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-              `-` +
-              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-              `-INCOME_PER_MONTH`
-          },
-        ],
-        status: 'final',
-        code: {
-          coding: [
-            {
-              system: 'https://sid-indonesia.org/clinical-codes',
-              code: 'income-per-month',
-              display: 'Income per month',
-            },
-          ],
-        },
-        subject: {
-          type: 'Patient',
-          reference: state.temporaryFullUrl.patientMother,
-        },
-        encounter: {
-          type: 'Encounter',
-          reference: state.transactionBundle.entry
-            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
-        },
-        effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
-        valueString: input[state.inputKey.optional.incomePerMonth]
+          state.configuration.queryIdentifierBabyMother + `-INCOME_PER_MONTH`,
       },
     };
+
+    observation.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, observationResource);
 
     return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
   } else {
     return state;
   }
 });
+
+// GET "Observation" resource of "Birth weight Measured" by identifier from server first
+get(`${state.configuration.resource}/Observation`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierBabyMother + `-BABY_BIRTH_WEIGHT`,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
 
 // Build "Observation" resource, for "Birth weight Measured"
 fn(state => {
-
   const input = state.koboData;
 
   if (input.hasOwnProperty(state.inputKey.optional.babyBirthWeightInKg)) {
-    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+    const observationResource = {
+      resourceType: 'Observation',
+      identifier: [
+        {
+          use: 'temp',
+          system: 'https://fhir.kemkes.go.id/id/observation',
+          value: state.configuration.queryIdentifierBabyMother + `-BABY_BIRTH_WEIGHT`,
+        },
+      ],
+      status: 'final',
+      code: {
+        coding: [
+          {
+            system: 'http://loinc.org',
+            code: '8339-4',
+            display: 'Birth weight Measured',
+          },
+        ],
+      },
+      subject: {
+        type: 'Patient',
+        reference: state.temporaryFullUrl.patientBaby,
+      },
+      effectiveDateTime: input[state.inputKey.required.babyBirthDate],
+      valueQuantity: {
+        value: Number(input[state.inputKey.optional.babyBirthWeightInKg]),
+        unit: 'kg',
+      },
+    };
 
     const observation = {
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-          `-BABY_BIRTH_WEIGHT`,
-      },
-
-      resource: {
-        resourceType: 'Observation',
-        identifier: [
-          {
-            use: 'temp',
-            system: 'https://fhir.kemkes.go.id/id/observation',
-            value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-              `-` +
-              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-              `-BABY_BIRTH_WEIGHT`
-          },
-        ],
-        status: 'final',
-        code: {
-          coding: [
-            {
-              system: 'http://loinc.org',
-              code: '8339-4',
-              display: 'Birth weight Measured',
-            },
-          ],
-        },
-        subject: {
-          type: 'Patient',
-          reference: state.temporaryFullUrl.patientBaby,
-        },
-        effectiveDateTime: input[state.inputKey.required.babyBirthDate],
-        valueQuantity: {
-          value: Number(input[state.inputKey.optional.babyBirthWeightInKg]),
-          unit: 'kg',
-        },
+          state.configuration.queryIdentifierBabyMother + `-BABY_BIRTH_WEIGHT`,
       },
     };
+
+    observation.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, observationResource);
 
     return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
   } else {
     return state;
   }
 });
+
+// GET "Observation" resource of "Baby weight measured at Posyandu" by identifier from server first
+get(`${state.configuration.resource}/Observation`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierBabyMother + `-BABY_WEIGHT_AT_POSYANDU`,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
 
 // Build "Observation" resource, for "Baby weight measured at Posyandu"
 fn(state => {
-
   const input = state.koboData;
 
   if (input.hasOwnProperty(state.inputKey.optional.babyWeightAtPosyanduInKg)) {
-    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+    const observationResource = {
+      resourceType: 'Observation',
+      identifier: [
+        {
+          use: 'temp',
+          system: 'https://fhir.kemkes.go.id/id/observation',
+          value: state.configuration.queryIdentifierBabyMother + `-BABY_WEIGHT_AT_POSYANDU`,
+        },
+      ],
+      status: 'final',
+      code: {
+        coding: [
+          {
+            system: 'http://loinc.org',
+            code: '3141-9',
+            display: 'Body weight Measured',
+          },
+        ],
+      },
+      subject: {
+        type: 'Patient',
+        reference: state.temporaryFullUrl.patientBaby,
+      },
+      encounter: {
+        type: 'Encounter',
+        reference: state.temporaryFullUrl.encounterPosyanduBaby
+      },
+      effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
+      valueQuantity: {
+        value: Number(input[state.inputKey.optional.babyWeightAtPosyanduInKg]),
+        unit: 'kg',
+      },
+    };
 
     const observation = {
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-          `-BABY_WEIGHT_AT_POSYANDU`,
-      },
-
-      resource: {
-        resourceType: 'Observation',
-        identifier: [
-          {
-            use: 'temp',
-            system: 'https://fhir.kemkes.go.id/id/observation',
-            value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-              `-` +
-              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-              `-BABY_WEIGHT_AT_POSYANDU`
-          },
-        ],
-        status: 'final',
-        code: {
-          coding: [
-            {
-              system: 'http://loinc.org',
-              code: '3141-9',
-              display: 'Body weight Measured',
-            },
-          ],
-        },
-        subject: {
-          type: 'Patient',
-          reference: state.temporaryFullUrl.patientBaby,
-        },
-        encounter: {
-          type: 'Encounter',
-          reference: state.transactionBundle.entry
-            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
-        },
-        effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
-        valueQuantity: {
-          value: Number(input[state.inputKey.optional.babyWeightAtPosyanduInKg]),
-          unit: 'kg',
-        },
+          state.configuration.queryIdentifierBabyMother + `-BABY_WEIGHT_AT_POSYANDU`,
       },
     };
+
+    observation.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, observationResource);
 
     return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
   } else {
     return state;
   }
 });
+
+// GET "Observation" resource of "Baby height measured at Posyandu" by identifier from server first
+get(`${state.configuration.resource}/Observation`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierBabyMother + `-BABY_HEIGHT_AT_POSYANDU`,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
 
 // Build "Observation" resource, for "Baby height measured at Posyandu"
 fn(state => {
-
   const input = state.koboData;
 
   if (input.hasOwnProperty(state.inputKey.optional.babyHeightAtPosyanduInCm)) {
-    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+    const observationResource = {
+      resourceType: 'Observation',
+      identifier: [
+        {
+          use: 'temp',
+          system: 'https://fhir.kemkes.go.id/id/observation',
+          value: state.configuration.queryIdentifierBabyMother + `-BABY_HEIGHT_AT_POSYANDU`,
+        },
+      ],
+      status: 'final',
+      code: {
+        coding: [
+          {
+            system: 'http://loinc.org',
+            code: '3137-7',
+            display: 'Body height Measured',
+          },
+        ],
+      },
+      subject: {
+        type: 'Patient',
+        reference: state.temporaryFullUrl.patientBaby,
+      },
+      encounter: {
+        type: 'Encounter',
+        reference: state.temporaryFullUrl.encounterPosyanduBaby,
+      },
+      effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
+      valueQuantity: {
+        value: Number(input[state.inputKey.optional.babyHeightAtPosyanduInCm]),
+        unit: 'cm',
+      },
+    };
 
     const observation = {
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-          `-BABY_HEIGHT_AT_POSYANDU`,
-      },
-
-      resource: {
-        resourceType: 'Observation',
-        identifier: [
-          {
-            use: 'temp',
-            system: 'https://fhir.kemkes.go.id/id/observation',
-            value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-              `-` +
-              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-              `-BABY_HEIGHT_AT_POSYANDU`
-          },
-        ],
-        status: 'final',
-        code: {
-          coding: [
-            {
-              system: 'http://loinc.org',
-              code: '3137-7',
-              display: 'Body height Measured',
-            },
-          ],
-        },
-        subject: {
-          type: 'Patient',
-          reference: state.temporaryFullUrl.patientBaby,
-        },
-        encounter: {
-          type: 'Encounter',
-          reference: state.transactionBundle.entry
-            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
-        },
-        effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
-        valueQuantity: {
-          value: Number(input[state.inputKey.optional.babyHeightAtPosyanduInCm]),
-          unit: 'cm',
-        },
+          state.configuration.queryIdentifierBabyMother + `-BABY_HEIGHT_AT_POSYANDU`,
       },
     };
+
+    observation.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, observationResource);
 
     return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
   } else {
@@ -942,62 +1148,70 @@ fn(state => {
   }
 });
 
+// GET "Observation" resource of "Baby Head Occipital-frontal circumference by Tape measure" by identifier from server first
+get(`${state.configuration.resource}/Observation`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierBabyMother + `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
 // Build "Observation" resource, for "Baby Head Occipital-frontal circumference by Tape measure"
 fn(state => {
-
   const input = state.koboData;
 
   if (input.hasOwnProperty(state.inputKey.optional.babyHeadCircumferenceInCm)) {
-    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+    const observationResource = {
+      resourceType: 'Observation',
+      identifier: [
+        {
+          use: 'temp',
+          system: 'https://fhir.kemkes.go.id/id/observation',
+          value: state.configuration.queryIdentifierBabyMother + `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`,
+        },
+      ],
+      status: 'final',
+      code: {
+        coding: [
+          {
+            system: 'http://loinc.org',
+            code: '8287-5',
+            display: 'Head Occipital-frontal circumference by Tape measure',
+          },
+        ],
+      },
+      subject: {
+        type: 'Patient',
+        reference: state.temporaryFullUrl.patientBaby,
+      },
+      encounter: {
+        type: 'Encounter',
+        reference: state.temporaryFullUrl.encounterPosyanduBaby,
+      },
+      effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
+      valueQuantity: {
+        value: Number(input[state.inputKey.optional.babyHeadCircumferenceInCm]),
+        unit: 'cm',
+      },
+    };
 
     const observation = {
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-          `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`,
-      },
-
-      resource: {
-        resourceType: 'Observation',
-        identifier: [
-          {
-            use: 'temp',
-            system: 'https://fhir.kemkes.go.id/id/observation',
-            value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-              `-` +
-              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-              `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`
-          },
-        ],
-        status: 'final',
-        code: {
-          coding: [
-            {
-              system: 'http://loinc.org',
-              code: '8287-5',
-              display: 'Head Occipital-frontal circumference by Tape measure',
-            },
-          ],
-        },
-        subject: {
-          type: 'Patient',
-          reference: state.temporaryFullUrl.patientBaby,
-        },
-        encounter: {
-          type: 'Encounter',
-          reference: state.transactionBundle.entry
-            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
-        },
-        effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
-        valueQuantity: {
-          value: Number(input[state.inputKey.optional.babyHeadCircumferenceInCm]),
-          unit: 'cm',
-        },
+          state.configuration.queryIdentifierBabyMother + `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`,
       },
     };
+
+    observation.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, observationResource);
 
     return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
   } else {
@@ -1005,59 +1219,67 @@ fn(state => {
   }
 });
 
-// Build "Observation" resource, for "Baby Head Occipital-frontal circumference by Tape measure"
-fn(state => {
+// GET "Observation" resource of "Baby Dosage Vitamin A at Posyandu" by identifier from server first
+get(`${state.configuration.resource}/Observation`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierBabyMother + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
+    },
+    headers: state.configuration.headersForFHIRServer,
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
 
+// Build "Observation" resource, for "Baby Dosage Vitamin A at Posyandu"
+fn(state => {
   const input = state.koboData;
 
   if (input.hasOwnProperty(state.inputKey.optional.dosageBabyGivenVitaminAAtPosyandu)) {
-    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
+
+    const observationResource = {
+      resourceType: 'Observation',
+      identifier: [
+        {
+          use: 'temp',
+          system: 'https://fhir.kemkes.go.id/id/observation',
+          value: state.configuration.queryIdentifierBabyMother + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
+        },
+      ],
+      status: 'final',
+      code: {
+        coding: [
+          {
+            system: 'https://sid-indonesia.org/clinical-codes',
+            code: 'baby-dosage-vitamin-a-at-posyandu',
+            display: 'Baby dosage vitamin A at posyandu',
+          },
+        ],
+      },
+      subject: {
+        type: 'Patient',
+        reference: state.temporaryFullUrl.patientBaby,
+      },
+      encounter: {
+        type: 'Encounter',
+        reference: state.temporaryFullUrl.encounterPosyanduBaby,
+      },
+      effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
+      valueString: input[state.inputKey.optional.dosageBabyGivenVitaminAAtPosyandu],
+    };
 
     const observation = {
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-          `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
-      },
-
-      resource: {
-        resourceType: 'Observation',
-        identifier: [
-          {
-            use: 'temp',
-            system: 'https://fhir.kemkes.go.id/id/observation',
-            value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-              `-` +
-              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-              `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`
-          },
-        ],
-        status: 'final',
-        code: {
-          coding: [
-            {
-              system: 'https://sid-indonesia.org/clinical-codes',
-              code: 'baby-dosage-vitamin-a-at-posyandu',
-              display: 'Baby dosage vitamin A at posyandu',
-            },
-          ],
-        },
-        subject: {
-          type: 'Patient',
-          reference: state.temporaryFullUrl.patientBaby,
-        },
-        encounter: {
-          type: 'Encounter',
-          reference: state.transactionBundle.entry
-            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
-        },
-        effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
-        valueString: input[state.inputKey.optional.dosageBabyGivenVitaminAAtPosyandu],
+          state.configuration.queryIdentifierBabyMother + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
       },
     };
+
+    observation.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, observationResource);
 
     return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
   } else {
@@ -1065,12 +1287,26 @@ fn(state => {
   }
 });
 
+// // GET "Immunization" resources by identifier from server first
+// get(`${state.configuration.resource}/Immunization`,
+//   {
+//     query: {
+//       identifier: `https://fhir.kemkes.go.id/id/immunization|` +
+//         state.configuration.queryIdentifierBabyMother + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
+//     },
+//     headers: state.configuration.headersForFHIRServer,
+//   },
+//   state => {
+//     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+//     return state;
+//   }
+// );
+
 // Build "Immunization" resources
 fn(state => {
-
   const input = state.koboData;
+
   if (input.hasOwnProperty(state.inputKey.optional.immunizationsGivenToBabyAtPosyanduSeparatedBySpace)) {
-    const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
     const immunizationTypeList = input[state.inputKey.optional.immunizationsGivenToBabyAtPosyanduSeparatedBySpace].split(' ');
     const immunizationResources = immunizationTypeList.map(
       (immunizationType) => {
@@ -1078,10 +1314,7 @@ fn(state => {
           request: {
             method: 'PUT',
             url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|` +
-              `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-              `-` +
-              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-              `-BABY_IMMUNIZATION_${immunizationType.toUpperCase()}`,
+              state.configuration.queryIdentifierBabyMother + `-BABY_IMMUNIZATION_${immunizationType.toUpperCase()}`,
           },
 
           resource: {
@@ -1090,10 +1323,7 @@ fn(state => {
               {
                 use: 'temp',
                 system: 'https://fhir.kemkes.go.id/id/immunization',
-                value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-                  `-` +
-                  `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-                  `-BABY_IMMUNIZATION_${immunizationType.toUpperCase()}`
+                value: state.configuration.queryIdentifierBabyMother + `-BABY_IMMUNIZATION_${immunizationType.toUpperCase()}`,
               },
             ],
             status: 'completed',
@@ -1114,8 +1344,7 @@ fn(state => {
             },
             encounter: {
               type: 'Encounter',
-              reference: state.transactionBundle.entry
-                .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+              reference: state.temporaryFullUrl.encounterPosyanduBaby,
             },
             location: {
               type: 'Location',
@@ -1134,8 +1363,8 @@ fn(state => {
 
 // Build other "Immunization" resource, if specified
 fn(state => {
-
   const input = state.koboData;
+
   if (input.hasOwnProperty(state.inputKey.optional.otherImmunizationsGivenToBabyAtPosyandu)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
     const otherImmunizationType = input[state.inputKey.optional.otherImmunizationsGivenToBabyAtPosyandu];
@@ -1180,8 +1409,7 @@ fn(state => {
         },
         encounter: {
           type: 'Encounter',
-          reference: state.transactionBundle.entry
-            .find(e => e.resource.resourceType === 'Encounter').fullUrl, // same as Encounter's `fullurl`
+          reference: state.temporaryFullUrl.encounterPosyanduBaby,
         },
         location: {
           type: 'Location',
