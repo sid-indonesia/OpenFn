@@ -168,18 +168,38 @@ fn(state => {
     },
   };
 
-  if (state.data.hasOwnProperty('entry')) {
-    const resourceFromServer = state.data.entry[0].resource;
-    const mergedResource = state.commonFunctions.mergeResourceFromServerWithNewlyCompiledResource(resourceFromServer, organizationResource);
-    organization.resource = mergedResource;
-  } else {
-    organization.resource = organizationResource;
-  }
+  mergeResourceIfFoundInServer(state, organizationResource, organization);
 
   return { ...state, transactionBundle: { entry: [organization] } };
 });
 
-// Build "Patient" and "RelatedPerson" resource for the mother
+// GET "RelatedPerson" resource of the mother by identifier from server first
+get(`${state.configuration.resource}/RelatedPerson`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
+        `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+        `-` +
+        `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}`,
+    },
+    headers: {
+      'content-type': 'application/fhir+json',
+      'accept': 'application/fhir+json',
+      'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
+    },
+  },
+  state => {
+    if (state.data.total > 1) {
+      throw new Error('We found more than one: "' +
+        state.data.entry[0].resource.resourceType + '" resources with identifier ' +
+        JSON.stringify(state.data.entry[0].resource.identifier) + ', aborting POST transaction bundle');
+    }
+
+    return state;
+  }
+);
+
+// Build "RelatedPerson" resource for the mother
 // http://hl7.org/fhir/R4/patient.html#maternity
 fn(state => {
 
@@ -227,6 +247,44 @@ fn(state => {
       },
     ],
   };
+
+  if (input.hasOwnProperty(state.inputKey.optional.motherBirthDate)) {
+    relatedPersonResourceMother.birthDate = input[state.inputKey.optional.motherBirthDate];
+  }
+
+  if (input.hasOwnProperty(state.inputKey.optional.motherPhoneNumber)) {
+    relatedPersonResourceMother.telecom = [
+      {
+        system: 'phone',
+        value: input[state.inputKey.optional.motherPhoneNumber],
+        use: 'mobile',
+        rank: 1,
+      }
+    ];
+  }
+
+  const relatedPersonMother = {
+    fullUrl: state.temporaryFullUrl.relatedPersonMother, // will be referenced in other resources
+    request: {
+      method: 'PUT',
+      url: `RelatedPerson?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
+        `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+        `-` +
+        `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}`,
+    },
+
+    resource: relatedPersonResourceMother
+  };
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, relatedPersonMother] } };
+});
+
+// Build "Patient" resource for the mother
+// http://hl7.org/fhir/R4/patient.html#maternity
+fn(state => {
+
+  const input = state.koboData;
+  const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const patientResourceMother = {
     resourceType: 'Patient',
@@ -294,8 +352,6 @@ fn(state => {
 
   if (input.hasOwnProperty(state.inputKey.optional.motherBirthDate)) {
     patientResourceMother.birthDate = input[state.inputKey.optional.motherBirthDate];
-
-    relatedPersonResourceMother.birthDate = patientResourceMother.birthDate;
   }
 
   if (input.hasOwnProperty(state.inputKey.optional.motherPhoneNumber)) {
@@ -307,22 +363,7 @@ fn(state => {
         rank: 1,
       }
     ];
-
-    relatedPersonResourceMother.telecom = patientResourceMother.telecom;
   }
-
-  const relatedPersonMother = {
-    fullUrl: state.temporaryFullUrl.relatedPersonMother, // will be referenced in other resources
-    request: {
-      method: 'PUT',
-      url: `RelatedPerson?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
-        `-` +
-        `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}`,
-    },
-
-    resource: relatedPersonResourceMother
-  };
 
   const patientMother = {
     fullUrl: state.temporaryFullUrl.patientMother, // will be referenced in other resources
@@ -337,7 +378,7 @@ fn(state => {
     resource: patientResourceMother
   };
 
-  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, relatedPersonMother, patientMother] } };
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, patientMother] } };
 });
 
 // Build "Patient" resource for the baby
@@ -1180,3 +1221,15 @@ post(
     },
   }
 );
+
+function mergeResourceIfFoundInServer(state, newlyCompiledResource, transactionEntry) {
+  if (state.data.hasOwnProperty('entry')) {
+    const mergeResourceFromServerWithNewlyCompiledResource = state.commonFunctions.mergeResourceFromServerWithNewlyCompiledResource;
+    const resourceFromServer = state.data.entry[0].resource;
+    const mergedResource = mergeResourceFromServerWithNewlyCompiledResource(resourceFromServer, newlyCompiledResource);
+    transactionEntry.resource = mergedResource;
+  } else {
+    transactionEntry.resource = newlyCompiledResource;
+  }
+}
+
