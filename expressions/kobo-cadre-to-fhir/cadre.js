@@ -129,7 +129,6 @@ get(`${state.configuration.resource}/Organization`,
     },
   },
   state => {
-    console.log(state);
     if (state.data.total > 1) {
       throw new Error('We found more than one: "' +
         state.data.entry[0].resource.resourceType + '" resources with identifier ' +
