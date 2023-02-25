@@ -55,7 +55,7 @@ fn(state => {
         ...resourceFromServer,
         ...resourceNewlyCompiled,
         ...mergedArrays
-      }
+      };
     },
 
   };
@@ -120,9 +120,9 @@ get(`${state.configuration.resource}/Organization`,
   },
   state => {
     if (state.data.total > 1) {
-      throw new Error('We found more than one: "'
-        + state.data.entry[0].resource.resourceType + '" resources with identifier '
-        + JSON.stringify(state.data.entry[0].resource.identifier) + ', aborting POST transaction bundle');
+      throw new Error('We found more than one: "' +
+        state.data.entry[0].resource.resourceType + '" resources with identifier ' +
+        JSON.stringify(state.data.entry[0].resource.identifier) + ', aborting POST transaction bundle');
     }
 
     return state;
