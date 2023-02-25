@@ -4,16 +4,14 @@
   to FHIR resources and POST them to a FHIR server
 */
 
-// Debugging
 fn(state => {
-  console.log(state.configuration);
+  // Move `state.data` to `state.koboData`
+  // because `state.data` will be filled with FHIR resource(s)
+  // retrieved from FHIR server
+  state.koboData = state.data;
 
-  return state;
-});
-
-// Add common variables and functions here
-// Do not forget to remove them later from the `state` before actions
-fn(state => {
+  // Add common variables and functions here
+  // Do not forget to remove them later from the `state` before actions
   state.commonFunctions = {
 
     trimSpacesTitleCase: (string) => {
@@ -24,11 +22,46 @@ fn(state => {
       }
 
       return sentence.join(" ");
-    }
+    },
+
+    mergeArrayAndRemoveDuplicates: (array1, array2) => {
+      if (Array.isArray(array1) && Array.isArray(array2)) {
+        return [
+          ...array1,
+          ...array2.filter(
+            (element2) =>
+              !array1.some(
+                (element1) => JSON.stringify(element2) === JSON.stringify(element1)
+              )
+          )
+        ];
+      } else if (Array.isArray(array1)) {
+        return array1;
+      } else if (Array.isArray(array2)) {
+        return array2;
+      } else {
+        return [];
+      }
+    },
+
+    mergeNewlyCompiledResourceWithTheOneFromServer: (resourceNewlyCompiled, resourceFromServer) => {
+      const arrayKeys = Object.keys(resourceNewlyCompiled).filter(key => Array.isArray(resourceNewlyCompiled[key]));
+      const mergedArrays = {};
+      for (const key of arrayKeys) {
+        mergedArrays[key] = state.commonFunctions.mergeArrayAndRemoveDuplicates(resourceNewlyCompiled[key], resourceFromServer[key]);
+      }
+
+      return {
+        ...resourceFromServer,
+        ...resourceNewlyCompiled,
+        ...mergedArrays
+      }
+    },
 
   };
 
   state.temporaryFullUrl = {
+    organizationSID: 'urn:uuid:organization-SID',
     patientBaby: 'urn:uuid:patient-baby',
     relatedPersonMother: 'urn:uuid:related-person-mother',
     patientMother: 'urn:uuid:patient-mother',
@@ -39,78 +72,109 @@ fn(state => {
     encounterPosyandu: 'urn:uuid:encounter-posyandu',
   };
 
-  const input = state.data;
-  state.inputKey = {};
-  state.inputKey.required = {
-    kecamatanName: 'group_yp32g51/Nama_Kecamatan',
-    desaName: 'group_yp32g51/Desa',
-    dusunName: Object.keys(input).find(key => key.startsWith('group_yp32g51/Silahkan_pilih_')),
-    cadreName: 'group_yp32g51/Nama_Kader',
-    motherName: 'group_gr5be69/Nama_Ibu',
-    motherAddress: 'group_gr5be69/Alamat',
-    babyName: 'id_balita/nama_balita',
-    babyBirthDate: 'id_balita/dob_balita',
-    visitPosyanduDate: 'group_ho1bh03/Tanggal_Posyandu',
-    isBabyGivenAdditionalFoodAtPosyandu: 'group_ho1bh03/Apakah_bayi_balita_m_mbahan_saat_posyandu',
-  };
-
-  state.inputKey.optional = {
-    motherBirthDate: 'group_gr5be69/Tanggal_lahir_Ibu',
-    motherPhoneNumber: 'group_gr5be69/Silahkan_isi_nomor_telepon_Ibu',
-    fatherName: 'group_gr5be69/Nama_Ayah',
-    incomePerMonth: 'group_gr5be69/Pendapatan_per_bulan',
-    babyBirthWeightInKg: 'id_balita/Berat_badan_lahir',
-    babyGender: 'id_balita/jenis_kelamin_balita',
-    babyWeightAtPosyanduInKg: 'group_ho1bh03/Berat_Bayi_balita',
-    babyHeightAtPosyanduInCm: 'group_ho1bh03/Panjang_Bayi_balita',
-    babyHeadCircumferenceInCm: 'group_ho1bh03/Lingkar_Kepala',
-    isBabyGivenVitaminAAtPosyandu: 'group_ho1bh03/Apakah_bayi_menerima_Vit_A_sa',
-    dosageBabyGivenVitaminAAtPosyandu: 'group_ho1bh03/Berapa_dosis_Vit_A_erikan_saat_posyandu',
-    immunizationsGivenToBabyAtPosyanduSeparatedBySpace: 'group_ho1bh03/Apa_jenis_imunisasi_yang_diber',
-    otherImmunizationsGivenToBabyAtPosyandu: 'group_ho1bh03/Sebutkan_jenis_imuni_at_posyandu_hari_ini',
+  const input = state.koboData;
+  state.inputKey = {
+    required: {
+      kecamatanName: 'group_yp32g51/Nama_Kecamatan',
+      desaName: 'group_yp32g51/Desa',
+      dusunName: Object.keys(input).find(key => key.startsWith('group_yp32g51/Silahkan_pilih_')),
+      cadreName: 'group_yp32g51/Nama_Kader',
+      motherName: 'group_gr5be69/Nama_Ibu',
+      motherAddress: 'group_gr5be69/Alamat',
+      babyName: 'id_balita/nama_balita',
+      babyBirthDate: 'id_balita/dob_balita',
+      visitPosyanduDate: 'group_ho1bh03/Tanggal_Posyandu',
+      isBabyGivenAdditionalFoodAtPosyandu: 'group_ho1bh03/Apakah_bayi_balita_m_mbahan_saat_posyandu',
+    },
+    optional: {
+      motherBirthDate: 'group_gr5be69/Tanggal_lahir_Ibu',
+      motherPhoneNumber: 'group_gr5be69/Silahkan_isi_nomor_telepon_Ibu',
+      fatherName: 'group_gr5be69/Nama_Ayah',
+      incomePerMonth: 'group_gr5be69/Pendapatan_per_bulan',
+      babyBirthWeightInKg: 'id_balita/Berat_badan_lahir',
+      babyGender: 'id_balita/jenis_kelamin_balita',
+      babyWeightAtPosyanduInKg: 'group_ho1bh03/Berat_Bayi_balita',
+      babyHeightAtPosyanduInCm: 'group_ho1bh03/Panjang_Bayi_balita',
+      babyHeadCircumferenceInCm: 'group_ho1bh03/Lingkar_Kepala',
+      isBabyGivenVitaminAAtPosyandu: 'group_ho1bh03/Apakah_bayi_menerima_Vit_A_sa',
+      dosageBabyGivenVitaminAAtPosyandu: 'group_ho1bh03/Berapa_dosis_Vit_A_erikan_saat_posyandu',
+      immunizationsGivenToBabyAtPosyanduSeparatedBySpace: 'group_ho1bh03/Apa_jenis_imunisasi_yang_diber',
+      otherImmunizationsGivenToBabyAtPosyandu: 'group_ho1bh03/Sebutkan_jenis_imuni_at_posyandu_hari_ini',
+    },
   };
 
   return state;
 });
 
+// GET "Organization" resource by identifier from server first
+get(`${state.configuration.resource}/Organization`,
+  {
+    query: {
+      identifier: 'https://fhir.kemkes.go.id/id/organisasi|SID',
+    },
+    headers: {
+      'content-type': 'application/fhir+json',
+      'accept': 'application/fhir+json',
+      'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
+    },
+  },
+  state => {
+    if (state.data.total > 1) {
+      throw new Error('We found more than one: "'
+        + state.data.entry[0].resource.resourceType + '" resources with identifier '
+        + JSON.stringify(state.data.entry[0].resource.identifier) + ', aborting POST transaction bundle');
+    }
+
+    return state;
+  }
+);
+
 // Build "Organization" resource, will be referenced in other resources
 fn(state => {
 
+  const organizationResource = {
+    resourceType: 'Organization',
+    identifier: [
+      {
+        use: 'official',
+        system: 'https://fhir.kemkes.go.id/id/organisasi',
+        value: 'SID',
+      },
+    ],
+    active: true,
+    type: [
+      {
+        coding: [
+          {
+            system: 'http://hl7.org/fhir/ValueSet/organization-type',
+            code: 'edu',
+            display: 'Educational Institute',
+          },
+        ],
+      },
+    ],
+    name: 'Summit Institute for Development',
+    alias: [
+      'SID',
+      'Summit',
+    ],
+  };
+
   const organization = {
-    fullUrl: 'urn:uuid:Organisasi-SID',
+    fullUrl: state.temporaryFullUrl.organizationSID,
     request: {
       method: 'PUT',
       url: 'Organization?identifier=https://fhir.kemkes.go.id/id/organisasi|SID'
     },
-
-    resource: {
-      resourceType: 'Organization',
-      identifier: [
-        {
-          use: 'official',
-          system: 'https://fhir.kemkes.go.id/id/organisasi',
-          value: 'SID',
-        },
-      ],
-      active: true,
-      type: [
-        {
-          coding: [
-            {
-              system: 'http://hl7.org/fhir/ValueSet/organization-type',
-              code: 'edu',
-              display: 'Educational Institute',
-            },
-          ],
-        },
-      ],
-      name: 'Summit Institute for Development',
-      alias: [
-        'SID',
-        'Summit',
-      ],
-    },
   };
+
+  if (state.data.hasOwnProperty('entry')) {
+    const theResourceFromServer = state.data.entry[0].resource;
+    const mergedResource = state.commonFunctions.mergeNewlyCompiledResourceWithTheOneFromServer(organizationResource, theResourceFromServer);
+    organization.resource = mergedResource;
+  } else {
+    organization.resource = organizationResource;
+  }
 
   return { ...state, transactionBundle: { entry: [organization] } };
 });
@@ -119,7 +183,7 @@ fn(state => {
 // http://hl7.org/fhir/R4/patient.html#maternity
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const relatedPersonResourceMother = {
@@ -228,8 +292,8 @@ fn(state => {
     ];
   }
 
-  if (input.hasOwnProperty(state.inputKey.optional.isBabyGivenAdditionalFoodAtPosyandu)) {
-    patientResourceMother.birthDate = input[state.inputKey.optional.isBabyGivenAdditionalFoodAtPosyandu];
+  if (input.hasOwnProperty(state.inputKey.optional.motherBirthDate)) {
+    patientResourceMother.birthDate = input[state.inputKey.optional.motherBirthDate];
 
     relatedPersonResourceMother.birthDate = patientResourceMother.birthDate;
   }
@@ -279,7 +343,7 @@ fn(state => {
 // Build "Patient" resource for the baby
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const patientResourceBaby = {
@@ -330,7 +394,7 @@ fn(state => {
 // Build "Practitioner" resource for the cadre
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const practitionerResource = {
@@ -371,7 +435,7 @@ fn(state => {
 // Build "Location" resources for "Kecamatan", "Desa" and "Dusun"
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
   let locations = [];
 
@@ -418,7 +482,7 @@ fn(state => {
     locationResourceDesa.partOf = {
       type: "Location",
       reference: state.temporaryFullUrl.locationKecamatan,
-    }
+    };
   }
 
   const locationDesa = {
@@ -471,7 +535,7 @@ fn(state => {
 // Build "Encounter" resource
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const encounter = {
@@ -524,7 +588,7 @@ fn(state => {
 // Build "Observation" resources, for "Apakah bayi/balita menerima makanan tambahan saat posyandu?"
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
   const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
 
   const babyHasReceivedAdditionalFoodAtPosyandu = input[state.inputKey.required.isBabyGivenAdditionalFoodAtPosyandu] === 'tidak' ? false : true;
@@ -585,7 +649,7 @@ fn(state => {
 // Build "Observation" resource, for "Income per month"
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
 
   if (input.hasOwnProperty(state.inputKey.optional.incomePerMonth)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
@@ -645,7 +709,7 @@ fn(state => {
 // Build "Observation" resource, for "Birth weight Measured"
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
 
   if (input.hasOwnProperty(state.inputKey.optional.babyBirthWeightInKg)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
@@ -703,7 +767,7 @@ fn(state => {
 // Build "Observation" resource, for "Baby weight measured at Posyandu"
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
 
   if (input.hasOwnProperty(state.inputKey.optional.babyWeightAtPosyanduInKg)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
@@ -766,7 +830,7 @@ fn(state => {
 // Build "Observation" resource, for "Baby height measured at Posyandu"
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
 
   if (input.hasOwnProperty(state.inputKey.optional.babyHeightAtPosyanduInCm)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
@@ -829,7 +893,7 @@ fn(state => {
 // Build "Observation" resource, for "Baby Head Occipital-frontal circumference by Tape measure"
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
 
   if (input.hasOwnProperty(state.inputKey.optional.babyHeadCircumferenceInCm)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
@@ -892,7 +956,7 @@ fn(state => {
 // Build "Observation" resource, for "Baby Head Occipital-frontal circumference by Tape measure"
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
 
   if (input.hasOwnProperty(state.inputKey.optional.dosageBabyGivenVitaminAAtPosyandu)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
@@ -952,7 +1016,7 @@ fn(state => {
 // Build "Immunization" resources
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
   if (input.hasOwnProperty(state.inputKey.optional.immunizationsGivenToBabyAtPosyanduSeparatedBySpace)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
     const immunizationTypeList = input[state.inputKey.optional.immunizationsGivenToBabyAtPosyanduSeparatedBySpace].split(' ');
@@ -1019,7 +1083,7 @@ fn(state => {
 // Build other "Immunization" resource, if specified
 fn(state => {
 
-  const input = state.data;
+  const input = state.koboData;
   if (input.hasOwnProperty(state.inputKey.optional.otherImmunizationsGivenToBabyAtPosyandu)) {
     const trimSpacesTitleCase = state.commonFunctions.trimSpacesTitleCase;
     const otherImmunizationType = input[state.inputKey.optional.otherImmunizationsGivenToBabyAtPosyandu];
@@ -1085,6 +1149,9 @@ fn(state => {
   delete state.commonFunctions;
   delete state.temporaryFullUrl;
   delete state.inputKey;
+
+  state.data = state.koboData;
+  delete state.koboData;
 
   return state;
 });
