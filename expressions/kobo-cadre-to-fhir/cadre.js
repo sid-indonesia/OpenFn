@@ -4,27 +4,6 @@
   to FHIR resources and POST them to a FHIR server
 */
 
-function trimSpacesTitleCase(string) {
-  const cleanString = string.replace(/_/g, " ").replace(/\s+/g, " ").toLowerCase(); // Remove extra spaces
-  let sentence = cleanString.split(" ");
-  for (let i = 0; i < sentence.length; i++) {
-    sentence[i] = sentence[i][0].toUpperCase() + sentence[i].slice(1);
-  }
-
-  return sentence.join(" ");
-}
-
-function mergeResourceIfFoundInServer(state, newlyCompiledResource, transactionEntry) {
-  if (state.data.hasOwnProperty('entry')) {
-    const mergeResourceFromServerWithNewlyCompiledResource = state.commonFunctions.mergeResourceFromServerWithNewlyCompiledResource;
-    const resourceFromServer = state.data.entry[0].resource;
-    const mergedResource = mergeResourceFromServerWithNewlyCompiledResource(resourceFromServer, newlyCompiledResource);
-    transactionEntry.resource = mergedResource;
-  } else {
-    transactionEntry.resource = newlyCompiledResource;
-  }
-}
-
 fn(state => {
   // Move `state.data` to `state.koboData`
   // because `state.data` will be filled with FHIR resource(s)
@@ -77,6 +56,16 @@ fn(state => {
         ...resourceNewlyCompiled,
         ...mergedArrays
       };
+    },
+
+    mergeResourceIfFoundInServer: (state, newlyCompiledResource) => {
+      if (state.data.hasOwnProperty('entry')) {
+        const resourceFromServer = state.data.entry[0].resource;
+        const mergedResource = state.commonFunctions.mergeResourceFromServerWithNewlyCompiledResource(resourceFromServer, newlyCompiledResource);
+        return mergedResource;
+      } else {
+        return newlyCompiledResource;
+      }
     },
 
   };
@@ -153,6 +142,8 @@ get(`${state.configuration.resource}/Organization`,
 // Build "Organization" resource, will be referenced in other resources
 fn(state => {
 
+  const mergeResourceIfFoundInServer = state.commonFunctions.mergeResourceIfFoundInServer;
+
   const organizationResource = {
     resourceType: 'Organization',
     identifier: [
@@ -189,7 +180,7 @@ fn(state => {
     },
   };
 
-  mergeResourceIfFoundInServer(state, organizationResource, organization);
+  organization.resource = mergeResourceIfFoundInServer(state, organizationResource);
 
   return { ...state, transactionBundle: { entry: [organization] } };
 });
@@ -199,9 +190,9 @@ get(`${state.configuration.resource}/RelatedPerson`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        `${trimSpacesTitleCase(state.koboData[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+        `${state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
         `-` +
-        `${trimSpacesTitleCase(state.koboData[state.inputKey.required.babyName]).replace(/ /g, "_")}`,
+        `${state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.babyName]).replace(/ /g, "_")}`,
     },
     headers: {
       'content-type': 'application/fhir+json',
