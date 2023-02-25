@@ -191,9 +191,9 @@ get(`${state.configuration.resource}/RelatedPerson`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        sourceValue('commonFunctions').trimSpacesTitleCase(sourceValue('koboData')[sourceValue('inputKey').required.motherName]).replace(/ /g, "_") +
+        sourceValue('commonFunctions')(state).trimSpacesTitleCase(sourceValue('koboData')(state)[sourceValue('inputKey')(state).required.motherName]).replace(/ /g, "_") +
         `-` +
-        sourceValue('commonFunctions').trimSpacesTitleCase(sourceValue('koboData')[sourceValue('$.inputKey').required.babyName]).replace(/ /g, "_"),
+        sourceValue('commonFunctions')(state).trimSpacesTitleCase(sourceValue('koboData')(state)[sourceValue('$.inputKey')(state).required.babyName]).replace(/ /g, "_"),
     },
     headers: {
       'content-type': 'application/fhir+json',
