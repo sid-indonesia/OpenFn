@@ -285,9 +285,9 @@ fn(state => {
         `-` +
         `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}`,
     },
-
-    resource: relatedPersonResourceMother
   };
+
+  relatedPersonMother.resource = mergeResourceIfFoundInServer(state, relatedPersonResourceMother);
 
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, relatedPersonMother] } };
 });
