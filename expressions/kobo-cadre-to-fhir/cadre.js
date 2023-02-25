@@ -22,7 +22,41 @@ fn(state => {
       }
 
       return sentence.join(" ");
-    }
+    },
+
+    mergeArrayAndRemoveDuplicates: (array1, array2) => {
+      if (Array.isArray(array1) && Array.isArray(array2)) {
+        return [
+          ...array1,
+          ...array2.filter(
+            (element2) =>
+              !array1.some(
+                (element1) => JSON.stringify(element2) === JSON.stringify(element1)
+              )
+          )
+        ];
+      } else if (Array.isArray(array1)) {
+        return array1;
+      } else if (Array.isArray(array2)) {
+        return array2;
+      } else {
+        return [];
+      }
+    },
+
+    mergeNewlyCompiledResourceWithTheOneFromServer: (resourceNewlyCompiled, resourceFromServer) => {
+      const arrayKeys = Object.keys(resourceNewlyCompiled).filter(key => Array.isArray(resourceNewlyCompiled[key]));
+      const mergedArrays = {};
+      for (const key of arrayKeys) {
+        mergedArrays[key] = state.commonFunctions.mergeArrayAndRemoveDuplicates(resourceNewlyCompiled[key], resourceFromServer[key]);
+      }
+
+      return {
+        ...resourceFromServer,
+        ...resourceNewlyCompiled,
+        ...mergedArrays
+      }
+    },
 
   };
 
@@ -72,19 +106,59 @@ fn(state => {
   return state;
 });
 
-// get(`${state.configuration.resource}/Organization`, {
-//   query: {
-//     identifier: 'https://fhir.kemkes.go.id/id/organisasi|SID',
-//   },
-//   headers: {
-//     'content-type': 'application/json',
-//     'accept': 'application/fhir+json',
-//     'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
-//   }
-// });
+// GET "Organization" resource by identifier from server first
+get(`${state.configuration.resource}/Organization`,
+  {
+    query: {
+      identifier: 'https://fhir.kemkes.go.id/id/organisasi|SID',
+    },
+    headers: {
+      'content-type': 'application/fhir+json',
+      'accept': 'application/fhir+json',
+      'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
+    },
+  },
+  state => {
+    if (state.data.total > 1) {
+      throw new Error('We found more than one: "'
+        + state.data.entry[0].resource.resourceType + '" resources with identifier '
+        + JSON.stringify(state.data.entry[0].resource.identifier) + ', aborting POST transaction bundle');
+    }
+
+    return state;
+  }
+);
 
 // Build "Organization" resource, will be referenced in other resources
 fn(state => {
+
+  const organizationResource = {
+    resourceType: 'Organization',
+    identifier: [
+      {
+        use: 'official',
+        system: 'https://fhir.kemkes.go.id/id/organisasi',
+        value: 'SID',
+      },
+    ],
+    active: true,
+    type: [
+      {
+        coding: [
+          {
+            system: 'http://hl7.org/fhir/ValueSet/organization-type',
+            code: 'edu',
+            display: 'Educational Institute',
+          },
+        ],
+      },
+    ],
+    name: 'Summit Institute for Development',
+    alias: [
+      'SID',
+      'Summit',
+    ],
+  };
 
   const organization = {
     fullUrl: state.temporaryFullUrl.organizationSID,
@@ -92,35 +166,15 @@ fn(state => {
       method: 'PUT',
       url: 'Organization?identifier=https://fhir.kemkes.go.id/id/organisasi|SID'
     },
-
-    resource: {
-      resourceType: 'Organization',
-      identifier: [
-        {
-          use: 'official',
-          system: 'https://fhir.kemkes.go.id/id/organisasi',
-          value: 'SID',
-        },
-      ],
-      active: true,
-      type: [
-        {
-          coding: [
-            {
-              system: 'http://hl7.org/fhir/ValueSet/organization-type',
-              code: 'edu',
-              display: 'Educational Institute',
-            },
-          ],
-        },
-      ],
-      name: 'Summit Institute for Development',
-      alias: [
-        'SID',
-        'Summit',
-      ],
-    },
   };
+
+  if (state.data.hasOwnProperty('entry')) {
+    const theResourceFromServer = state.data.entry[0].resource;
+    const mergedResource = state.commonFunctions.mergeNewlyCompiledResourceWithTheOneFromServer(organizationResource, theResourceFromServer);
+    organization.resource = mergedResource;
+  } else {
+    organization.resource = organizationResource;
+  }
 
   return { ...state, transactionBundle: { entry: [organization] } };
 });

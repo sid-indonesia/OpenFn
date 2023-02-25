@@ -1,16 +1,17 @@
-get(`${state.configuration.resource}/Patient`, {
-  query: {
-    identifier: 'https://fhir.kemkes.go.id/id/nik|',
-    _sort: '_id',
-    _count: '1000',
-    _offset: state.lastOffset
+get(`${state.configuration.resource}/Patient`,
+  {
+    query: {
+      identifier: 'https://fhir.kemkes.go.id/id/nik|',
+      _sort: '_id',
+      _count: '1000',
+      _offset: state.lastOffset
+    },
+    headers: {
+      'content-type': 'application/fhir+json',
+      'accept': 'application/fhir+json',
+      'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
+    }
   },
-  headers: {
-    'content-type': 'application/json',
-    'accept': 'application/fhir+json',
-    'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
-  }
-},
   state => {
     if (state.lastOffset === undefined || state.lastOffset === null) {
       state.lastOffset = 0;
