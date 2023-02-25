@@ -14,7 +14,7 @@ fn(state => {
     'Content-Type': 'application/fhir+json',
     'Accept': 'application/fhir+json',
     'Authorization': `${state.configuration.tokenType} ${state.configuration.accessToken}`,
-  }
+  };
 
   // Add common variables and functions here
   // Do not forget to remove them later from the `state` before actions
