@@ -167,11 +167,9 @@ get(`${state.configuration.resource}/Organization`,
     query: {
       identifier: 'https://fhir.kemkes.go.id/id/organisasi|SID',
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
-    console.log(state.configuration.headersForFHIRServer);
-    console.log(state.data);
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
     return state;
   }
@@ -250,7 +248,7 @@ get(`${state.configuration.resource}/RelatedPerson`,
       identifier: `https://fhir.kemkes.go.id/id/nik|` +
         state.configuration.queryIdentifierMother,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -340,7 +338,7 @@ get(`${state.configuration.resource}/Patient`,
       identifier: `https://fhir.kemkes.go.id/id/nik|` +
         state.configuration.queryIdentifierMother,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -451,7 +449,7 @@ get(`${state.configuration.resource}/Patient`,
       identifier: `https://fhir.kemkes.go.id/id/mother-nik-and-baby-name|` +
         state.configuration.queryIdentifierBabyMother,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -511,7 +509,7 @@ get(`${state.configuration.resource}/Practitioner`,
       identifier: `https://fhir.kemkes.go.id/id/temp-identifier-desa-name-and-cadre-name|` +
         state.configuration.queryIdentifierDesaCadre,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -562,7 +560,7 @@ get(`${state.configuration.resource}/Location`,
       identifier: `https://fhir.kemkes.go.id/id/temp-identifier-kecamatan-name|` +
         state.configuration.queryIdentifierKecamatan,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -614,7 +612,7 @@ get(`${state.configuration.resource}/Location`,
       identifier: `https://fhir.kemkes.go.id/id/temp-identifier-desa-name|` +
         state.configuration.queryIdentifierDesa,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -668,7 +666,7 @@ get(`${state.configuration.resource}/Location`,
       identifier: `https://fhir.kemkes.go.id/id/temp-identifier-dusun-name-and-desa-name|` +
         state.configuration.queryIdentifierDusunDesa,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -718,7 +716,7 @@ get(`${state.configuration.resource}/Encounter`,
       identifier: `https://fhir.kemkes.go.id/id/encounter|` +
         state.configuration.queryIdentifierMother + `-MOTHER_POSYANDU_VISIT`,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -779,7 +777,7 @@ get(`${state.configuration.resource}/Encounter`,
       identifier: `https://fhir.kemkes.go.id/id/encounter|` +
         state.configuration.queryIdentifierBabyMother + `-BABY_POSYANDU_VISIT`,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -843,7 +841,7 @@ get(`${state.configuration.resource}/Observation`,
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
         state.configuration.queryIdentifierBabyMother + `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -908,7 +906,7 @@ get(`${state.configuration.resource}/Observation`,
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
         state.configuration.queryIdentifierBabyMother + `-INCOME_PER_MONTH`,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -976,7 +974,7 @@ get(`${state.configuration.resource}/Observation`,
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
         state.configuration.queryIdentifierBabyMother + `-BABY_BIRTH_WEIGHT`,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -1043,7 +1041,7 @@ get(`${state.configuration.resource}/Observation`,
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
         state.configuration.queryIdentifierBabyMother + `-BABY_WEIGHT_AT_POSYANDU`,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -1114,7 +1112,7 @@ get(`${state.configuration.resource}/Observation`,
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
         state.configuration.queryIdentifierBabyMother + `-BABY_HEIGHT_AT_POSYANDU`,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -1185,7 +1183,7 @@ get(`${state.configuration.resource}/Observation`,
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
         state.configuration.queryIdentifierBabyMother + `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -1256,7 +1254,7 @@ get(`${state.configuration.resource}/Observation`,
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
         state.configuration.queryIdentifierBabyMother + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
     },
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   },
   state => {
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -1325,7 +1323,7 @@ fn(state => {
 //       identifier: `https://fhir.kemkes.go.id/id/immunization|` +
 //         state.configuration.queryIdentifierBabyMother + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
 //     },
-//     headers: state.configuration.headersForFHIRServer,
+//     headers: sourceValue('configuration.headersForFHIRServer'),
 //   },
 //   state => {
 //     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
@@ -1481,7 +1479,7 @@ post(
   state.configuration.resource,
   {
     body: sourceValue('transactionBundle'),
-    headers: state.configuration.headersForFHIRServer,
+    headers: sourceValue('configuration.headersForFHIRServer'),
   }
 );
 
