@@ -471,7 +471,7 @@ fn(state => {
       reference: state.temporaryFullUrl.patientBaby,
     },
     effectiveDateTime: input[state.inputKey.required.visitDate],
-    valueString: input[state.inputkey.required.screeningResult],
+    valueString: input[state.inputKey.required.screeningResult],
   };
 
   const observation = {
