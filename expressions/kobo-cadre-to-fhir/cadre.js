@@ -167,7 +167,7 @@ get(`${state.configuration.resource}/Organization`,
     query: {
       identifier: 'https://fhir.kemkes.go.id/id/organisasi|SID',
     },
-    headers: sourceValue('configuration.headersForFHIRServer'),
+    headers: state.configuration.headersForFHIRServer,
   },
   state => {
     console.log(state.configuration.headersForFHIRServer);
