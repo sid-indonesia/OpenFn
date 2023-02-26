@@ -139,6 +139,7 @@ fn(state => {
       babyBirthDate: 'id_balita/dob_balita',
       visitPosyanduDate: 'group_ho1bh03/Tanggal_Posyandu',
       isBabyGivenAdditionalFoodAtPosyandu: 'group_ho1bh03/Apakah_bayi_balita_m_mbahan_saat_posyandu',
+      nikMother: 'group_gr5be69/nik_ibu',
     },
     optional: {
       motherBirthDate: 'group_gr5be69/Tanggal_lahir_Ibu',
@@ -219,13 +220,11 @@ fn(state => {
 });
 
 fn(state => {
-  state.configuration.queryIdentifierMotherBaby = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.motherName]).replace(/ /g, "_") +
+  state.configuration.queryIdentifierMother = state.koboData[state.inputKey.required.nikMother].replace(/ /g, "_");
+
+  state.configuration.queryIdentifierBabyMother = state.koboData[state.inputKey.required.nikMother].replace(/ /g, "_").replace(/ /g, "_") +
     `-` +
     state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.babyName]).replace(/ /g, "_");
-
-  state.configuration.queryIdentifierBabyMother = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.babyName]).replace(/ /g, "_") +
-    `-` +
-    state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.motherName]).replace(/ /g, "_");
 
   state.configuration.queryIdentifierDesaCadre = state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.desaName]).replace(/ /g, "_") +
     `-` +
@@ -246,8 +245,8 @@ fn(state => {
 get(`${state.configuration.resource}/RelatedPerson`,
   {
     query: {
-      identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        state.configuration.queryIdentifierMotherBaby,
+      identifier: `https://fhir.kemkes.go.id/id/nik|` +
+        state.configuration.queryIdentifierMother,
     },
     headers: state.configuration.headersForFHIRServer,
   },
@@ -267,9 +266,9 @@ fn(state => {
     resourceType: "RelatedPerson",
     identifier: [
       {
-        use: 'temp',
-        system: 'https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name',
-        value: state.configuration.queryIdentifierMotherBaby,
+        use: 'official',
+        system: 'https://fhir.kemkes.go.id/id/nik',
+        value: state.configuration.queryIdentifierMother,
       },
     ],
     patient: {
@@ -322,8 +321,8 @@ fn(state => {
     fullUrl: state.temporaryFullUrl.relatedPersonMother,
     request: {
       method: 'PUT',
-      url: `RelatedPerson?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        state.configuration.queryIdentifierMotherBaby,
+      url: `RelatedPerson?identifier=https://fhir.kemkes.go.id/id/nik|` +
+        state.configuration.queryIdentifierMother,
     },
   };
 
@@ -336,8 +335,8 @@ fn(state => {
 get(`${state.configuration.resource}/Patient`,
   {
     query: {
-      identifier: `https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        state.configuration.queryIdentifierMotherBaby,
+      identifier: `https://fhir.kemkes.go.id/id/nik|` +
+        state.configuration.queryIdentifierMother,
     },
     headers: state.configuration.headersForFHIRServer,
   },
@@ -357,9 +356,9 @@ fn(state => {
     resourceType: 'Patient',
     identifier: [
       {
-        use: 'temp',
-        system: 'https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name',
-        value: state.configuration.queryIdentifierMotherBaby,
+        use: 'official',
+        system: 'https://fhir.kemkes.go.id/id/nik',
+        value: state.configuration.queryIdentifierMother,
       },
     ],
     name: [
@@ -433,8 +432,8 @@ fn(state => {
     fullUrl: state.temporaryFullUrl.patientMother,
     request: {
       method: 'PUT',
-      url: `Patient?identifier=https://fhir.kemkes.go.id/id/temp-identifier-mother-name-and-baby-name|` +
-        state.configuration.queryIdentifierMotherBaby,
+      url: `Patient?identifier=https://fhir.kemkes.go.id/id/nik|` +
+        state.configuration.queryIdentifierMother,
     },
   };
 
@@ -447,7 +446,7 @@ fn(state => {
 get(`${state.configuration.resource}/Patient`,
   {
     query: {
-      identifier: `https://fhir.kemkes.go.id/id/temp-identifier-baby-name-and-mother-name|` +
+      identifier: `https://fhir.kemkes.go.id/id/mother-nik-and-baby-name|` +
         state.configuration.queryIdentifierBabyMother,
     },
     headers: state.configuration.headersForFHIRServer,
@@ -467,8 +466,8 @@ fn(state => {
     resourceType: 'Patient',
     identifier: [
       {
-        use: 'temp',
-        system: 'https://fhir.kemkes.go.id/id/temp-identifier-baby-name-and-mother-name',
+        use: 'usual',
+        system: 'https://fhir.kemkes.go.id/id/mother-nik-and-baby-name',
         value: state.configuration.queryIdentifierBabyMother,
       },
     ],
@@ -493,7 +492,7 @@ fn(state => {
     fullUrl: state.temporaryFullUrl.patientBaby,
     request: {
       method: 'PUT',
-      url: `Patient?identifier=https://fhir.kemkes.go.id/id/temp-identifier-baby-name-and-mother-name|` +
+      url: `Patient?identifier=https://fhir.kemkes.go.id/id/mother-nik-and-baby-name|` +
         state.configuration.queryIdentifierBabyMother,
     },
   };
@@ -715,7 +714,7 @@ get(`${state.configuration.resource}/Encounter`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/encounter|` +
-        state.configuration.queryIdentifierMotherBaby + `-MOTHER_POSYANDU_VISIT`,
+        state.configuration.queryIdentifierMother + `-MOTHER_POSYANDU_VISIT`,
     },
     headers: state.configuration.headersForFHIRServer,
   },
@@ -738,9 +737,9 @@ fn(state => {
     },
     identifier: [
       {
-        use: 'temp',
+        use: 'usual',
         system: 'https://fhir.kemkes.go.id/id/encounter',
-        value: state.configuration.queryIdentifierMotherBaby + `-MOTHER_POSYANDU_VISIT`,
+        value: state.configuration.queryIdentifierMother + `-MOTHER_POSYANDU_VISIT`,
       },
     ],
     subject: {
@@ -762,7 +761,7 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|` +
-        state.configuration.queryIdentifierMotherBaby + `-MOTHER_POSYANDU_VISIT`,
+        state.configuration.queryIdentifierMother + `-MOTHER_POSYANDU_VISIT`,
     },
   };
 
@@ -798,7 +797,7 @@ fn(state => {
     },
     identifier: [
       {
-        use: 'temp',
+        use: 'usual',
         system: 'https://fhir.kemkes.go.id/id/encounter',
         value: state.configuration.queryIdentifierBabyMother + `-BABY_POSYANDU_VISIT`,
       },
@@ -860,7 +859,7 @@ fn(state => {
     resourceType: 'Observation',
     identifier: [
       {
-        use: 'temp',
+        use: 'usual',
         system: 'https://fhir.kemkes.go.id/id/observation',
         value: state.configuration.queryIdentifierBabyMother + `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
       },
@@ -925,7 +924,7 @@ fn(state => {
       resourceType: 'Observation',
       identifier: [
         {
-          use: 'temp',
+          use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/observation',
           value: state.configuration.queryIdentifierBabyMother + `-INCOME_PER_MONTH`,
         },
@@ -993,7 +992,7 @@ fn(state => {
       resourceType: 'Observation',
       identifier: [
         {
-          use: 'temp',
+          use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/observation',
           value: state.configuration.queryIdentifierBabyMother + `-BABY_BIRTH_WEIGHT`,
         },
@@ -1060,7 +1059,7 @@ fn(state => {
       resourceType: 'Observation',
       identifier: [
         {
-          use: 'temp',
+          use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/observation',
           value: state.configuration.queryIdentifierBabyMother + `-BABY_WEIGHT_AT_POSYANDU`,
         },
@@ -1131,7 +1130,7 @@ fn(state => {
       resourceType: 'Observation',
       identifier: [
         {
-          use: 'temp',
+          use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/observation',
           value: state.configuration.queryIdentifierBabyMother + `-BABY_HEIGHT_AT_POSYANDU`,
         },
@@ -1202,7 +1201,7 @@ fn(state => {
       resourceType: 'Observation',
       identifier: [
         {
-          use: 'temp',
+          use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/observation',
           value: state.configuration.queryIdentifierBabyMother + `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`,
         },
@@ -1273,7 +1272,7 @@ fn(state => {
       resourceType: 'Observation',
       identifier: [
         {
-          use: 'temp',
+          use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/observation',
           value: state.configuration.queryIdentifierBabyMother + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
         },
@@ -1316,6 +1315,7 @@ fn(state => {
   }
 });
 
+// TODO
 // // GET "Immunization" resources by identifier from server first
 // get(`${state.configuration.resource}/Immunization`,
 //   {
@@ -1350,7 +1350,7 @@ fn(state => {
             resourceType: 'Immunization',
             identifier: [
               {
-                use: 'temp',
+                use: 'usual',
                 system: 'https://fhir.kemkes.go.id/id/immunization',
                 value: state.configuration.queryIdentifierBabyMother + `-BABY_IMMUNIZATION_${immunizationType.toUpperCase()}`,
               },
@@ -1402,9 +1402,7 @@ fn(state => {
       request: {
         method: 'PUT',
         url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-          `-` +
-          `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+          state.configuration.queryIdentifierBabyMother +
           `-BABY_OTHER_IMMUNIZATION_${trimSpacesTitleCase(otherImmunizationType).toUpperCase().replace(/ /g, "_")}`,
       },
 
@@ -1412,11 +1410,9 @@ fn(state => {
         resourceType: 'Immunization',
         identifier: [
           {
-            use: 'temp',
+            use: 'usual',
             system: 'https://fhir.kemkes.go.id/id/immunization',
-            value: `${trimSpacesTitleCase(input[state.inputKey.required.babyName]).replace(/ /g, "_")}` +
-              `-` +
-              `${trimSpacesTitleCase(input[state.inputKey.required.motherName]).replace(/ /g, "_")}` +
+            value: state.configuration.queryIdentifierBabyMother +
               `-BABY_OTHER_IMMUNIZATION_${trimSpacesTitleCase(otherImmunizationType).toUpperCase().replace(/ /g, "_")}`,
           },
         ],
