@@ -1482,3 +1482,8 @@ post(
     headers: state.configuration.headersForFHIRServer,
   }
 );
+
+fn(state => {
+  console.log(state.data);
+  return state;
+});
