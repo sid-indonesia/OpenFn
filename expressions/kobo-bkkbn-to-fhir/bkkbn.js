@@ -491,7 +491,7 @@ fn(state => {
 fn(state => {
   const input = state.koboData;
 
-  const immunizationTypeList = input[state.inputKey.optional.basicImmunizationsGivenToBabySeparatedBySpace].split(' ');
+  const immunizationTypeList = input[state.inputKey.required.basicImmunizationsGivenToBabySeparatedBySpace].split(' ');
   const immunizationResources = immunizationTypeList.map(
     (immunizationType) => {
       return {
