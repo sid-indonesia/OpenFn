@@ -170,6 +170,7 @@ get(`${state.configuration.resource}/Organization`,
     headers: state.configuration.headersForFHIRServer,
   },
   state => {
+    console.log(state.configuration.headersForFHIRServer);
     console.log(state.data);
     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
     return state;
