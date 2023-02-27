@@ -126,15 +126,15 @@ fn(state => {
       babyName: 'id_balita/nama_balita',
       babyBirthDate: 'id_balita/dob_balita',
       babyGender: 'id_balita/jenis_kelamin_balita',
-      nikMother: 'id_balita/NIK_Orangtua_Ibu_Bapak',
+      nikMother: 'id_balita/NIK_Ibu',
       motherName: 'id_balita/nama_ortu',
       motherPhoneNumber: 'id_balita/nomor_telepon',
       screeningResult: 'detil_kunjungan/hasil_skrining',
       visitDate: 'detil_kunjungan/tanggal_kunjungan',
       basicImmunizationsGivenToBabySeparatedBySpace: 'group_pd7fc60/idl',
+      kecamatanName: 'group_yp32g51/Kecamatan',
     },
     optional: {
-      kecamatanName: 'group_yp32g51/Kecamatan',
     },
   };
 
