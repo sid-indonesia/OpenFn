@@ -132,9 +132,24 @@ fn(state => {
       screeningResult: 'detil_kunjungan/hasil_skrining',
       visitDate: 'detil_kunjungan/Tanggal_Kunjungan',
       basicImmunizationsGivenToBabySeparatedBySpace: 'group_pd7fc60/idl',
+
+      babyBirthWeight: 'group_pd7fc60/bbl',
+      babyBirthHeight: 'group_pd7fc60/pbl',
+      isGivenExclusiveASI: 'group_pd7fc60/ASI_Eksklusif',
+      isGivenComplementaryFoodASI: 'group_pd7fc60/MPASI',
+      chronicDiseaseText: 'group_pd7fc60/Penyakit_Kronis',
+
+      visitNumber: 'detil_kunjungan/kunjungan',
+      familyAssistanceTeamTreatmentText: 'detil_kunjungan/tindakan',
       kecamatanName: 'group_yp32g51/Kecamatan',
+      familyAssistanceTeam: 'group_yp32g51/tpk',
+      villageName: 'id_balita/Nama_Desa',
+      subVillageName: Object.keys(state.koboData).find(key => key.startsWith('id_balita/Nama_Dusun')),
     },
     optional: {
+      babyWeightAtBKKBNScreening: 'group_pd7fc60/Berat_Badan',
+      babyHeightAtBKKBNScreening: 'group_pd7fc60/Panjang_Tinggi_Badan_Balita',
+      babyTumbangText: 'group_pd7fc60/Tumbang',
     },
   };
 
