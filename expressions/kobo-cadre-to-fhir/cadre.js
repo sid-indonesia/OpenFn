@@ -222,7 +222,7 @@ fn(state => {
 fn(state => {
   state.configuration.queryIdentifierMother = state.koboData[state.inputKey.required.nikMother].replace(/ /g, "_");
 
-  state.configuration.queryIdentifierBabyMother = state.koboData[state.inputKey.required.nikMother].replace(/ /g, "_").replace(/ /g, "_") +
+  state.configuration.queryIdentifierMotherBaby = state.koboData[state.inputKey.required.nikMother].replace(/ /g, "_").replace(/ /g, "_") +
     `-` +
     state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.babyName]).replace(/ /g, "_");
 
@@ -447,7 +447,7 @@ get(`${state.configuration.resource}/Patient`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/mother-nik-and-baby-name|` +
-        state.configuration.queryIdentifierBabyMother,
+        state.configuration.queryIdentifierMotherBaby,
     },
     headers: sourceValue('configuration.headersForFHIRServer'),
   },
@@ -468,7 +468,7 @@ fn(state => {
       {
         use: 'usual',
         system: 'https://fhir.kemkes.go.id/id/mother-nik-and-baby-name',
-        value: state.configuration.queryIdentifierBabyMother,
+        value: state.configuration.queryIdentifierMotherBaby,
       },
     ],
     name: [
@@ -493,7 +493,7 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Patient?identifier=https://fhir.kemkes.go.id/id/mother-nik-and-baby-name|` +
-        state.configuration.queryIdentifierBabyMother,
+        state.configuration.queryIdentifierMotherBaby,
     },
   };
 
@@ -775,7 +775,7 @@ get(`${state.configuration.resource}/Encounter`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/encounter|` +
-        state.configuration.queryIdentifierBabyMother + `-BABY_POSYANDU_VISIT`,
+        state.configuration.queryIdentifierMotherBaby + `-BABY_POSYANDU_VISIT`,
     },
     headers: sourceValue('configuration.headersForFHIRServer'),
   },
@@ -799,7 +799,7 @@ fn(state => {
       {
         use: 'usual',
         system: 'https://fhir.kemkes.go.id/id/encounter',
-        value: state.configuration.queryIdentifierBabyMother + `-BABY_POSYANDU_VISIT`,
+        value: state.configuration.queryIdentifierMotherBaby + `-BABY_POSYANDU_VISIT`,
       },
     ],
     subject: {
@@ -825,7 +825,7 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|` +
-        state.configuration.queryIdentifierBabyMother + `-BABY_POSYANDU_VISIT`,
+        state.configuration.queryIdentifierMotherBaby + `-BABY_POSYANDU_VISIT`,
     },
   };
 
@@ -839,7 +839,7 @@ get(`${state.configuration.resource}/Observation`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
-        state.configuration.queryIdentifierBabyMother + `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
+        state.configuration.queryIdentifierMotherBaby + `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
     },
     headers: sourceValue('configuration.headersForFHIRServer'),
   },
@@ -861,7 +861,7 @@ fn(state => {
       {
         use: 'usual',
         system: 'https://fhir.kemkes.go.id/id/observation',
-        value: state.configuration.queryIdentifierBabyMother + `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
+        value: state.configuration.queryIdentifierMotherBaby + `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
       },
     ],
     status: 'final',
@@ -890,7 +890,7 @@ fn(state => {
     request: {
       method: 'PUT',
       url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-        state.configuration.queryIdentifierBabyMother + `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
+        state.configuration.queryIdentifierMotherBaby + `-BABY_RECEIVED_ADDITIONAL_FOOD_AT_POSYANDU`,
     },
   };
 
@@ -904,7 +904,7 @@ get(`${state.configuration.resource}/Observation`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
-        state.configuration.queryIdentifierBabyMother + `-INCOME_PER_MONTH`,
+        state.configuration.queryIdentifierMotherBaby + `-INCOME_PER_MONTH`,
     },
     headers: sourceValue('configuration.headersForFHIRServer'),
   },
@@ -926,7 +926,7 @@ fn(state => {
         {
           use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/observation',
-          value: state.configuration.queryIdentifierBabyMother + `-INCOME_PER_MONTH`,
+          value: state.configuration.queryIdentifierMotherBaby + `-INCOME_PER_MONTH`,
         },
       ],
       status: 'final',
@@ -955,7 +955,7 @@ fn(state => {
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-          state.configuration.queryIdentifierBabyMother + `-INCOME_PER_MONTH`,
+          state.configuration.queryIdentifierMotherBaby + `-INCOME_PER_MONTH`,
       },
     };
 
@@ -972,7 +972,7 @@ get(`${state.configuration.resource}/Observation`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
-        state.configuration.queryIdentifierBabyMother + `-BABY_BIRTH_WEIGHT`,
+        state.configuration.queryIdentifierMotherBaby + `-BABY_BIRTH_WEIGHT`,
     },
     headers: sourceValue('configuration.headersForFHIRServer'),
   },
@@ -994,7 +994,7 @@ fn(state => {
         {
           use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/observation',
-          value: state.configuration.queryIdentifierBabyMother + `-BABY_BIRTH_WEIGHT`,
+          value: state.configuration.queryIdentifierMotherBaby + `-BABY_BIRTH_WEIGHT`,
         },
       ],
       status: 'final',
@@ -1011,7 +1011,7 @@ fn(state => {
         type: 'Patient',
         reference: state.temporaryFullUrl.patientBaby,
       },
-      effectiveDateTime: input[state.inputKey.required.babyBirthDate],
+      effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
       valueQuantity: {
         value: Number(input[state.inputKey.optional.babyBirthWeightInKg]),
         unit: 'kg',
@@ -1022,7 +1022,7 @@ fn(state => {
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-          state.configuration.queryIdentifierBabyMother + `-BABY_BIRTH_WEIGHT`,
+          state.configuration.queryIdentifierMotherBaby + `-BABY_BIRTH_WEIGHT`,
       },
     };
 
@@ -1039,7 +1039,7 @@ get(`${state.configuration.resource}/Observation`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
-        state.configuration.queryIdentifierBabyMother + `-BABY_WEIGHT_AT_POSYANDU`,
+        state.configuration.queryIdentifierMotherBaby + `-BABY_WEIGHT_AT_POSYANDU`,
     },
     headers: sourceValue('configuration.headersForFHIRServer'),
   },
@@ -1061,7 +1061,7 @@ fn(state => {
         {
           use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/observation',
-          value: state.configuration.queryIdentifierBabyMother + `-BABY_WEIGHT_AT_POSYANDU`,
+          value: state.configuration.queryIdentifierMotherBaby + `-BABY_WEIGHT_AT_POSYANDU`,
         },
       ],
       status: 'final',
@@ -1093,7 +1093,7 @@ fn(state => {
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-          state.configuration.queryIdentifierBabyMother + `-BABY_WEIGHT_AT_POSYANDU`,
+          state.configuration.queryIdentifierMotherBaby + `-BABY_WEIGHT_AT_POSYANDU`,
       },
     };
 
@@ -1110,7 +1110,7 @@ get(`${state.configuration.resource}/Observation`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
-        state.configuration.queryIdentifierBabyMother + `-BABY_HEIGHT_AT_POSYANDU`,
+        state.configuration.queryIdentifierMotherBaby + `-BABY_HEIGHT_AT_POSYANDU`,
     },
     headers: sourceValue('configuration.headersForFHIRServer'),
   },
@@ -1132,7 +1132,7 @@ fn(state => {
         {
           use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/observation',
-          value: state.configuration.queryIdentifierBabyMother + `-BABY_HEIGHT_AT_POSYANDU`,
+          value: state.configuration.queryIdentifierMotherBaby + `-BABY_HEIGHT_AT_POSYANDU`,
         },
       ],
       status: 'final',
@@ -1164,7 +1164,7 @@ fn(state => {
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-          state.configuration.queryIdentifierBabyMother + `-BABY_HEIGHT_AT_POSYANDU`,
+          state.configuration.queryIdentifierMotherBaby + `-BABY_HEIGHT_AT_POSYANDU`,
       },
     };
 
@@ -1181,7 +1181,7 @@ get(`${state.configuration.resource}/Observation`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
-        state.configuration.queryIdentifierBabyMother + `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`,
+        state.configuration.queryIdentifierMotherBaby + `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`,
     },
     headers: sourceValue('configuration.headersForFHIRServer'),
   },
@@ -1203,7 +1203,7 @@ fn(state => {
         {
           use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/observation',
-          value: state.configuration.queryIdentifierBabyMother + `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`,
+          value: state.configuration.queryIdentifierMotherBaby + `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`,
         },
       ],
       status: 'final',
@@ -1235,7 +1235,7 @@ fn(state => {
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-          state.configuration.queryIdentifierBabyMother + `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`,
+          state.configuration.queryIdentifierMotherBaby + `-BABY_HEAD_CIRCUMFERENCE_AT_POSYANDU`,
       },
     };
 
@@ -1252,7 +1252,7 @@ get(`${state.configuration.resource}/Observation`,
   {
     query: {
       identifier: `https://fhir.kemkes.go.id/id/observation|` +
-        state.configuration.queryIdentifierBabyMother + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
+        state.configuration.queryIdentifierMotherBaby + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
     },
     headers: sourceValue('configuration.headersForFHIRServer'),
   },
@@ -1274,7 +1274,7 @@ fn(state => {
         {
           use: 'usual',
           system: 'https://fhir.kemkes.go.id/id/observation',
-          value: state.configuration.queryIdentifierBabyMother + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
+          value: state.configuration.queryIdentifierMotherBaby + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
         },
       ],
       status: 'final',
@@ -1303,7 +1303,7 @@ fn(state => {
       request: {
         method: 'PUT',
         url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
-          state.configuration.queryIdentifierBabyMother + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
+          state.configuration.queryIdentifierMotherBaby + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
       },
     };
 
@@ -1321,7 +1321,7 @@ fn(state => {
 //   {
 //     query: {
 //       identifier: `https://fhir.kemkes.go.id/id/immunization|` +
-//         state.configuration.queryIdentifierBabyMother + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
+//         state.configuration.queryIdentifierMotherBaby + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
 //     },
 //     headers: sourceValue('configuration.headersForFHIRServer'),
 //   },
@@ -1343,7 +1343,7 @@ fn(state => {
           request: {
             method: 'PUT',
             url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|` +
-              state.configuration.queryIdentifierBabyMother + `-BABY_IMMUNIZATION_${immunizationType.toUpperCase()}`,
+              state.configuration.queryIdentifierMotherBaby + `-BABY_IMMUNIZATION_${immunizationType.toUpperCase()}`,
           },
 
           resource: {
@@ -1352,7 +1352,7 @@ fn(state => {
               {
                 use: 'usual',
                 system: 'https://fhir.kemkes.go.id/id/immunization',
-                value: state.configuration.queryIdentifierBabyMother + `-BABY_IMMUNIZATION_${immunizationType.toUpperCase()}`,
+                value: state.configuration.queryIdentifierMotherBaby + `-BABY_IMMUNIZATION_${immunizationType.toUpperCase()}`,
               },
             ],
             status: 'completed',
@@ -1402,7 +1402,7 @@ fn(state => {
       request: {
         method: 'PUT',
         url: `Immunization?identifier=https://fhir.kemkes.go.id/id/immunization|` +
-          state.configuration.queryIdentifierBabyMother +
+          state.configuration.queryIdentifierMotherBaby +
           `-BABY_OTHER_IMMUNIZATION_${trimSpacesTitleCase(otherImmunizationType).toUpperCase().replace(/ /g, "_")}`,
       },
 
@@ -1412,7 +1412,7 @@ fn(state => {
           {
             use: 'usual',
             system: 'https://fhir.kemkes.go.id/id/immunization',
-            value: state.configuration.queryIdentifierBabyMother +
+            value: state.configuration.queryIdentifierMotherBaby +
               `-BABY_OTHER_IMMUNIZATION_${trimSpacesTitleCase(otherImmunizationType).toUpperCase().replace(/ /g, "_")}`,
           },
         ],

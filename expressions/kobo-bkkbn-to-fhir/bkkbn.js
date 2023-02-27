@@ -118,6 +118,8 @@ fn(state => {
     patientBaby: 'urn:uuid:patient-baby',
     relatedPersonMother: 'urn:uuid:related-person-mother',
     patientMother: 'urn:uuid:patient-mother',
+    encounterBKKBNBaby: 'urn:uuid:encounter-BKKBN-baby',
+    encounterBKKBNMother: 'urn:uuid:encounter-BKKBN-mother',
   };
 
   state.inputKey = {
@@ -133,8 +135,8 @@ fn(state => {
       visitDate: 'detil_kunjungan/Tanggal_Kunjungan',
       basicImmunizationsGivenToBabySeparatedBySpace: 'group_pd7fc60/idl',
 
-      babyBirthWeight: 'group_pd7fc60/bbl',
-      babyBirthHeight: 'group_pd7fc60/pbl',
+      babyBirthWeightInKg: 'group_pd7fc60/bbl',
+      babyBirthHeightInCm: 'group_pd7fc60/pbl',
       isGivenExclusiveASI: 'group_pd7fc60/ASI_Eksklusif',
       isGivenComplementaryFoodASI: 'group_pd7fc60/MPASI',
       chronicDiseaseText: 'group_pd7fc60/Penyakit_Kronis',
@@ -152,6 +154,13 @@ fn(state => {
       babyTumbangText: 'group_pd7fc60/Tumbang',
     },
   };
+
+  // Identifiers
+  state.configuration.queryIdentifierMother = state.koboData[state.inputKey.required.nikMother].replace(/ /g, "_");
+
+  state.configuration.queryIdentifierMotherBaby = state.koboData[state.inputKey.required.nikMother].replace(/ /g, "_").replace(/ /g, "_") +
+    `-` +
+    state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.babyName]).replace(/ /g, "_");
 
   return state;
 });
@@ -211,16 +220,6 @@ fn(state => {
   organization.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, organizationResource);
 
   return { ...state, transactionBundle: { entry: [organization] } };
-});
-
-fn(state => {
-  state.configuration.queryIdentifierMother = state.koboData[state.inputKey.required.nikMother].replace(/ /g, "_");
-
-  state.configuration.queryIdentifierMotherBaby = state.koboData[state.inputKey.required.nikMother].replace(/ /g, "_").replace(/ /g, "_") +
-    `-` +
-    state.commonFunctions.trimSpacesTitleCase(state.koboData[state.inputKey.required.babyName]).replace(/ /g, "_");
-
-  return state;
 });
 
 // GET "RelatedPerson" resource of the mother by identifier from server first
@@ -443,6 +442,115 @@ fn(state => {
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, patientBaby] } };
 });
 
+// GET "Encounter" resource of BKKBN Visit for the mother by identifier from server first
+get(`${state.configuration.resource}/Encounter`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/encounter|` +
+        state.configuration.queryIdentifierMother + `-MOTHER_BKKBN_VISIT`,
+    },
+    headers: sourceValue('configuration.headersForFHIRServer'),
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
+// Build "Encounter" resource for the mother
+// http://hl7.org/fhir/R4/patient.html#maternity
+fn(state => {
+  const encounterResource = {
+    resourceType: 'Encounter',
+    status: 'finished',
+    class: {
+      system: 'http://terminology.hl7.org/ValueSet/v3-ActEncounterCode',
+      code: 'HH',
+      display: 'home health',
+    },
+    identifier: [
+      {
+        use: 'usual',
+        system: 'https://fhir.kemkes.go.id/id/encounter',
+        value: state.configuration.queryIdentifierMother + `-MOTHER_BKKBN_VISIT`,
+      },
+    ],
+    subject: {
+      type: 'Patient',
+      reference: state.temporaryFullUrl.patientMother,
+    },
+  };
+
+  const encounter = {
+    fullUrl: state.temporaryFullUrl.encounterBKKBNMother,
+    request: {
+      method: 'PUT',
+      url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|` +
+        state.configuration.queryIdentifierMother + `-MOTHER_BKKBN_VISIT`,
+    },
+  };
+
+  encounter.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, encounterResource);
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, encounter] } };
+});
+
+// GET "Encounter" resource of Posyandu Visit for the baby by identifier from server first
+get(`${state.configuration.resource}/Encounter`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/encounter|` +
+        state.configuration.queryIdentifierMotherBaby + `-BABY_BKKBN_VISIT`,
+    },
+    headers: sourceValue('configuration.headersForFHIRServer'),
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
+// Build "Encounter" resource for the baby
+fn(state => {
+  const encounterResource = {
+    resourceType: 'Encounter',
+    status: 'finished',
+    class: {
+      system: 'http://terminology.hl7.org/ValueSet/v3-ActEncounterCode',
+      code: 'HH',
+      display: 'home health',
+    },
+    identifier: [
+      {
+        use: 'usual',
+        system: 'https://fhir.kemkes.go.id/id/encounter',
+        value: state.configuration.queryIdentifierMotherBaby + `-BABY_BKKBN_VISIT`,
+      },
+    ],
+    subject: {
+      type: 'Patient',
+      reference: state.temporaryFullUrl.patientBaby,
+    },
+    partOf: {
+      type: 'Encounter',
+      reference: state.temporaryFullUrl.encounterBKKBNMother
+    }
+  };
+
+  const encounter = {
+    fullUrl: state.temporaryFullUrl.encounterBKKBNBaby,
+    request: {
+      method: 'PUT',
+      url: `Encounter?identifier=https://fhir.kemkes.go.id/id/encounter|` +
+        state.configuration.queryIdentifierMotherBaby + `-BABY_BKKBN_VISIT`,
+    },
+  };
+
+  encounter.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, encounterResource);
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, encounter] } };
+});
+
 // GET "Observation" resource of "BKKBN Screening Result" by identifier from server first
 get(`${state.configuration.resource}/Observation`,
   {
@@ -484,6 +592,10 @@ fn(state => {
     subject: {
       type: 'Patient',
       reference: state.temporaryFullUrl.patientBaby,
+    },
+    encounter: {
+      type: 'Encounter',
+      reference: state.temporaryFullUrl.encounterBKKBNBaby,
     },
     effectiveDateTime: input[state.inputKey.required.visitDate],
     valueString: input[state.inputKey.required.screeningResult],
@@ -541,12 +653,148 @@ fn(state => {
             type: 'Patient',
             reference: state.temporaryFullUrl.patientBaby,
           },
+          encounter: {
+            type: 'Encounter',
+            reference: state.temporaryFullUrl.encounterBKKBNBaby,
+          },
         },
       };
     }
   );
 
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, ...immunizationResources] } };
+});
+
+// GET "Observation" resource of "Birth weight Measured" by identifier from server first
+get(`${state.configuration.resource}/Observation`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierBabyMother + `-BABY_BIRTH_WEIGHT`,
+    },
+    headers: sourceValue('configuration.headersForFHIRServer'),
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
+// Build "Observation" resource, for "Birth weight Measured"
+fn(state => {
+  const input = state.koboData;
+
+  const observationResource = {
+    resourceType: 'Observation',
+    identifier: [
+      {
+        use: 'usual',
+        system: 'https://fhir.kemkes.go.id/id/observation',
+        value: state.configuration.queryIdentifierMotherBaby + `-BABY_BIRTH_WEIGHT`,
+      },
+    ],
+    status: 'final',
+    code: {
+      coding: [
+        {
+          system: 'http://loinc.org',
+          code: '8339-4',
+          display: 'Birth weight Measured',
+        },
+      ],
+    },
+    subject: {
+      type: 'Patient',
+      reference: state.temporaryFullUrl.patientBaby,
+    },
+    encounter: {
+      type: 'Encounter',
+      reference: state.temporaryFullUrl.encounterBKKBNBaby,
+    },
+    effectiveDateTime: input[state.inputKey.required.visitDate],
+    valueQuantity: {
+      value: Number(input[state.inputKey.required.babyBirthWeightInKg]),
+      unit: 'kg',
+    },
+  };
+
+  const observation = {
+    request: {
+      method: 'PUT',
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierMotherBaby + `-BABY_BIRTH_WEIGHT`,
+    },
+  };
+
+  observation.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, observationResource);
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
+});
+
+// GET "Observation" resource of "Body height Measured --at birth" by identifier from server first
+get(`${state.configuration.resource}/Observation`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierBabyMother + `-BABY_BIRTH_HEIGHT`,
+    },
+    headers: sourceValue('configuration.headersForFHIRServer'),
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
+// Build "Observation" resource, for "Body height Measured --at birth"
+fn(state => {
+  const input = state.koboData;
+
+  const observationResource = {
+    resourceType: 'Observation',
+    identifier: [
+      {
+        use: 'usual',
+        system: 'https://fhir.kemkes.go.id/id/observation',
+        value: state.configuration.queryIdentifierMotherBaby + `-BABY_BIRTH_HEIGHT`,
+      },
+    ],
+    status: 'final',
+    code: {
+      coding: [
+        {
+          system: 'http://loinc.org',
+          code: '89269-5',
+          display: 'Body height Measured --at birth',
+        },
+      ],
+    },
+    subject: {
+      type: 'Patient',
+      reference: state.temporaryFullUrl.patientBaby,
+    },
+    encounter: {
+      type: 'Encounter',
+      reference: state.temporaryFullUrl.encounterBKKBNBaby,
+    },
+    effectiveDateTime: input[state.inputKey.required.visitDate],
+    valueQuantity: {
+      value: Number(input[state.inputKey.required.babyBirthHeightInCm]),
+      unit: 'cm',
+    },
+  };
+
+  const observation = {
+    request: {
+      method: 'PUT',
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierMotherBaby + `-BABY_BIRTH_HEIGHT`,
+    },
+  };
+
+  observation.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, observationResource);
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
 });
 
 // Remove common variables and functions from the state
