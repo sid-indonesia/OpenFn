@@ -1,10 +1,8 @@
 {
   "id_balita/dob_balita": "2023-02-25",
   "group_pd7fc60/Penyakit_Kronis": "Only Required",
-  "id_balita/alamat_rumah": "Only Required",
-  "id_balita/nama_ortu": "Only Required",
-  "group_pd7fc60/AE": "Only Required",
-  "detil_kunjungan/tanggal_kunjungan": "2023-02-25",
+  "group_pd7fc60/ASI_Eksklusif": "ya",
+  "detil_kunjungan/Tanggal_Kunjungan": "2023-02-25",
   "id_balita/NIK_ortu": "Only Required",
   "detil_kunjungan/hasil_skrining": "sehat",
   "id_balita/nama_balita": "Only Required",

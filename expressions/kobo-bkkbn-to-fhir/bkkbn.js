@@ -130,7 +130,7 @@ fn(state => {
       motherName: 'id_balita/nama_ortu',
       motherPhoneNumber: 'id_balita/nomor_telepon',
       screeningResult: 'detil_kunjungan/hasil_skrining',
-      visitDate: 'detil_kunjungan/tanggal_kunjungan',
+      visitDate: 'detil_kunjungan/Tanggal_Kunjungan',
       basicImmunizationsGivenToBabySeparatedBySpace: 'group_pd7fc60/idl',
       kecamatanName: 'group_yp32g51/Kecamatan',
     },
