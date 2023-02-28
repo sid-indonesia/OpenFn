@@ -831,8 +831,6 @@ get(`${state.configuration.resource}/Observation`,
 fn(state => {
   const input = state.koboData;
 
-  const babyHasReceivedAdditionalFoodAtPosyandu = input[state.inputKey.required.isBabyGivenAdditionalFoodAtPosyandu] === 'tidak' ? false : true;
-
   const observationResource = {
     resourceType: 'Observation',
     identifier: [
@@ -861,7 +859,7 @@ fn(state => {
       reference: state.temporaryFullUrl.encounterPosyanduBaby,
     },
     effectiveDateTime: input[state.inputKey.required.visitPosyanduDate],
-    valueBoolean: babyHasReceivedAdditionalFoodAtPosyandu,
+    valueBoolean: input[state.inputKey.required.isBabyGivenAdditionalFoodAtPosyandu] === 'tidak' ? false : true,
   };
 
   const observation = {
