@@ -1300,22 +1300,6 @@ fn(state => {
   }
 });
 
-// TODO
-// // GET "Immunization" resources by identifier from server first
-// get(`${state.configuration.resource}/Immunization`,
-//   {
-//     query: {
-//       identifier: `https://fhir.kemkes.go.id/id/immunization|` +
-//         state.configuration.queryIdentifierMotherBaby + `-BABY_DOSAGE_VITAMIN_A_AT_POSYANDU`,
-//     },
-//     headers: sourceValue('configuration.headersForFHIRServer'),
-//   },
-//   state => {
-//     state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
-//     return state;
-//   }
-// );
-
 // Build "Immunization" resources
 fn(state => {
   const input = state.koboData;
