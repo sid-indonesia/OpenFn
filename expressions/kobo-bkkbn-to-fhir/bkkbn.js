@@ -31,72 +31,50 @@ fn(state => {
     },
 
     mergeArrayAndRemoveDuplicates: (array1, array2) => {
-      if (Array.isArray(array1) && Array.isArray(array2)) {
-        return [
-          ...array1,
-          ...array2.filter(
-            (element2) =>
-              !array1.some(
-                (element1) => JSON.stringify(element2) === JSON.stringify(element1)
-              )
-          )
-        ];
-      } else if (Array.isArray(array1)) {
-        return array1;
-      } else if (Array.isArray(array2)) {
-        return array2;
-      } else {
-        return [];
-      }
+      // Need to make sure that the parameters are of type Array before using this function
+      return [
+        ...array1,
+        ...array2.filter(
+          (element2) =>
+            !array1.some(
+              (element1) => JSON.stringify(element2) === JSON.stringify(element1)
+            )
+        )
+      ];
     },
+
+    hasNestedArray: (value) => typeof value === 'object' && value !== null && !Array.isArray(value) &&
+      Object.values(value).some(v => Array.isArray(v) || state.commonFunctions.hasNestedArray(v)),
 
     mergeNestedArrayAndRemoveDuplicates: (obj1, obj2) => {
       const mergedObj = {};
 
       // Merge all properties from both objects
-      for (const key of Object.keys(obj1).concat(Object.keys(obj2))) {
+      for (const key of new Set(Object.keys(obj1).concat(Object.keys(obj2)))) {
         const value1 = obj1[key];
         const value2 = obj2[key];
         if (Array.isArray(value1) && Array.isArray(value2)) {
           // If the property is an array, merge it and remove duplicates
           mergedObj[key] = state.commonFunctions.mergeArrayAndRemoveDuplicates(value1, value2);
-        } else {
-          // Otherwise, use the value from the second object (obj2) to overwrite the value in the first object (obj1)
+        } else if (state.commonFunctions.hasNestedArray(value2) || state.commonFunctions.hasNestedArray(value1)) {
+          // If the property is an object which contains array as some of the properties, call current method recursively
+          mergedObj[key] = state.commonFunctions.mergeNestedArrayAndRemoveDuplicates(value1, value2);
+        } else if (obj2.hasOwnProperty(key) && value2 !== null) {
+          // If present, use the value from the second object (obj2) to overwrite the value in the first object (obj1)
           mergedObj[key] = value2;
+        } else {
+          // Otherwise, keep the one retrieved from server (obj1)
+          mergedObj[key] = value1;
         }
       }
 
       return mergedObj;
     },
 
-    mergeResourceFromServerWithNewlyCompiledResource: (resourceFromServer, resourceNewlyCompiled) => {
-      const arrayKeys = Object.keys(resourceNewlyCompiled).filter(key => Array.isArray(resourceNewlyCompiled[key]));
-      const mergedArrays = {};
-      for (const key of arrayKeys) {
-        mergedArrays[key] = state.commonFunctions.mergeArrayAndRemoveDuplicates(resourceFromServer[key], resourceNewlyCompiled[key]);
-      }
-
-      const nestedArrayKeys = Object.keys(resourceNewlyCompiled).filter(key => {
-        const value = resourceNewlyCompiled[key];
-        return typeof value === 'object' && value !== null && !Array.isArray(value) && Object.values(value).some(v => Array.isArray(v));
-      });
-      const mergedNestedArrays = {};
-      for (const key of nestedArrayKeys) {
-        mergedNestedArrays[key] = state.commonFunctions.mergeNestedArrayAndRemoveDuplicates(resourceFromServer[key], resourceNewlyCompiled[key]);
-      }
-
-      return {
-        ...resourceFromServer,
-        ...resourceNewlyCompiled,
-        ...mergedArrays,
-        ...mergedNestedArrays
-      };
-    },
-
     mergeResourceIfFoundInServer: (state, newlyCompiledResource) => {
       if (state.data.hasOwnProperty('entry')) {
         const resourceFromServer = state.data.entry[0].resource;
-        const mergedResource = state.commonFunctions.mergeResourceFromServerWithNewlyCompiledResource(resourceFromServer, newlyCompiledResource);
+        const mergedResource = state.commonFunctions.mergeNestedArrayAndRemoveDuplicates(resourceFromServer, newlyCompiledResource);
         return mergedResource;
       } else {
         return newlyCompiledResource;

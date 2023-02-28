@@ -31,23 +31,16 @@ fn(state => {
     },
 
     mergeArrayAndRemoveDuplicates: (array1, array2) => {
-      if (Array.isArray(array1) && Array.isArray(array2)) {
-        return [
-          ...array1,
-          ...array2.filter(
-            (element2) =>
-              !array1.some(
-                (element1) => JSON.stringify(element2) === JSON.stringify(element1)
-              )
-          )
-        ];
-      } else if (Array.isArray(array1)) {
-        return array1;
-      } else if (Array.isArray(array2)) {
-        return array2;
-      } else {
-        return [];
-      }
+      // Need to make sure that the parameters are of type Array before using this function
+      return [
+        ...array1,
+        ...array2.filter(
+          (element2) =>
+            !array1.some(
+              (element1) => JSON.stringify(element2) === JSON.stringify(element1)
+            )
+        )
+      ];
     },
 
     hasNestedArray: (value) => typeof value === 'object' && value !== null && !Array.isArray(value) &&
@@ -57,7 +50,7 @@ fn(state => {
       const mergedObj = {};
 
       // Merge all properties from both objects
-      for (const key of Object.keys(obj1).concat(Object.keys(obj2))) {
+      for (const key of new Set(Object.keys(obj1).concat(Object.keys(obj2)))) {
         const value1 = obj1[key];
         const value2 = obj2[key];
         if (Array.isArray(value1) && Array.isArray(value2)) {
