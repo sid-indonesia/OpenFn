@@ -3,6 +3,7 @@
   from KoBo form "[NextGen] Form Kobo for Cadre"
   to FHIR resources and POST them to a FHIR server
 */
+const _ = require('lodash');
 
 fn(state => {
   // Move `state.data` to `state.koboData`
