@@ -775,7 +775,7 @@ fn(state => {
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
 });
 
-// GET "Observation" resource of "Baby Given Exclusive Breastfeeding" by identifier from server first
+// GET "Observation" resource of "Baby given Exclusive Breastfeeding" by identifier from server first
 get(`${state.configuration.resource}/Observation`,
   {
     query: {
@@ -790,7 +790,7 @@ get(`${state.configuration.resource}/Observation`,
   }
 );
 
-// Build "Observation" resource, for "Baby Given Exclusive Breastfeeding"
+// Build "Observation" resource, for "Baby given Exclusive Breastfeeding"
 fn(state => {
   const input = state.koboData;
 
@@ -830,6 +830,69 @@ fn(state => {
       method: 'PUT',
       url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
         state.configuration.queryIdentifierMotherBaby + `-BABY_GIVEN_EXCLUSIVE_BREASTFEEDING`,
+    },
+  };
+
+  observation.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, observationResource);
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
+});
+
+// GET "Observation" resource of "Baby given Complementary Food" by identifier from server first
+get(`${state.configuration.resource}/Observation`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierMotherBaby + `-BABY_GIVEN_COMPLEMENTARY_FOOD`,
+    },
+    headers: sourceValue('configuration.headersForFHIRServer'),
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
+// Build "Observation" resource, for "Baby given Complementary Food"
+fn(state => {
+  const input = state.koboData;
+
+  const observationResource = {
+    resourceType: 'Observation',
+    identifier: [
+      {
+        use: 'usual',
+        system: 'https://fhir.kemkes.go.id/id/observation',
+        value: state.configuration.queryIdentifierMotherBaby + `-BABY_GIVEN_COMPLEMENTARY_FOOD`,
+      },
+    ],
+    status: 'final',
+    code: {
+      coding: [
+        {
+          system: 'https://sid-indonesia.org/clinical-codes',
+          code: 'baby-given-complementary-food',
+          display: 'Baby given Complementary Food',
+        },
+      ],
+    },
+    subject: {
+      type: 'Patient',
+      reference: state.temporaryFullUrl.patientBaby,
+    },
+    encounter: {
+      type: 'Encounter',
+      reference: state.temporaryFullUrl.encounterBKKBNBaby,
+    },
+    effectiveDateTime: input[state.inputKey.required.visitDate],
+    valueBoolean: input[state.inputKey.required.isGivenComplementaryFoodASI] === 'ya' ? true : false,
+  };
+
+  const observation = {
+    request: {
+      method: 'PUT',
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierMotherBaby + `-BABY_GIVEN_COMPLEMENTARY_FOOD`,
     },
   };
 
