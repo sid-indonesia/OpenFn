@@ -901,6 +901,69 @@ fn(state => {
   return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
 });
 
+// GET "Observation" resource of "Baby Chronic Disease text" by identifier from server first
+get(`${state.configuration.resource}/Observation`,
+  {
+    query: {
+      identifier: `https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierMotherBaby + `-BABY_CHRONIC_DISEASE_TEXT`,
+    },
+    headers: sourceValue('configuration.headersForFHIRServer'),
+  },
+  state => {
+    state.commonFunctions.checkMoreThanOneResourceByIdentifier(state);
+    return state;
+  }
+);
+
+// Build "Observation" resource, for "Baby Chronic Disease text"
+fn(state => {
+  const input = state.koboData;
+
+  const observationResource = {
+    resourceType: 'Observation',
+    identifier: [
+      {
+        use: 'usual',
+        system: 'https://fhir.kemkes.go.id/id/observation',
+        value: state.configuration.queryIdentifierMotherBaby + `-BABY_CHRONIC_DISEASE_TEXT`,
+      },
+    ],
+    status: 'final',
+    code: {
+      coding: [
+        {
+          system: 'https://sid-indonesia.org/clinical-codes',
+          code: 'baby-chronic-disease-text',
+          display: 'Baby Chronic Disease text',
+        },
+      ],
+    },
+    subject: {
+      type: 'Patient',
+      reference: state.temporaryFullUrl.patientBaby,
+    },
+    encounter: {
+      type: 'Encounter',
+      reference: state.temporaryFullUrl.encounterBKKBNBaby,
+    },
+    effectiveDateTime: input[state.inputKey.required.visitDate],
+    valueString: input[state.inputKey.required.chronicDiseaseText],
+  };
+
+  const observation = {
+    request: {
+      method: 'PUT',
+      url: `Observation?identifier=https://fhir.kemkes.go.id/id/observation|` +
+        state.configuration.queryIdentifierMotherBaby + `-BABY_CHRONIC_DISEASE_TEXT`,
+    },
+  };
+
+  observation.resource = state.commonFunctions.mergeResourceIfFoundInServer(state, observationResource);
+
+  return { ...state, transactionBundle: { entry: [...state.transactionBundle.entry, observation] } };
+});
+
 // Remove common variables and functions from the state
 fn(state => {
   delete state.commonFunctions;
