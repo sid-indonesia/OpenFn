@@ -1,6 +1,6 @@
 sql(state =>
   `SELECT
-    (anc_registration."obs.phone_number.values"::jsonb) ->> 0 AS "phone_number",
+    substring((anc_registration."obs.phone_number.values"::jsonb) ->> 0, 2) AS "phone_number",
     CASE
         WHEN (the_mother."firstName" = the_mother."lastName")
     THEN the_mother."firstName"
