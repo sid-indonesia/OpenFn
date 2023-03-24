@@ -1,12 +1,12 @@
 sql(state =>
   `SELECT
-    substring((anc_registration."obs.phone_number.values"::jsonb) ->> 0, 2) AS "phone_number",
+    substring((anc_registration."obs.phone_number.values"::jsonb) ->> 0, 2) AS "a_phone_number",
     CASE
         WHEN (the_mother."firstName" = the_mother."lastName")
     THEN the_mother."firstName"
         ELSE the_mother."firstName" || ' ' || the_mother."lastName"
-    END AS "full_name",
-    the_mother."attributes.next_contact" AS "next_contact"
+    END AS "b_full_name",
+    the_mother."attributes.next_contact" AS "c_next_contact"
   FROM
     core.client_detailed_view the_mother
   LEFT JOIN core."event_ANC Registration_view" anc_registration ON
