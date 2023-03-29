@@ -12,6 +12,7 @@ sql(state =>
         ELSE the_mother."firstName" || ' ' || the_mother."lastName"
     END AS "customer_name",
     'Bunda App' AS "company",
+    the_mother."attributes.next_contact_date" AS "next_contact_date",
     the_mother."attributes.next_contact" AS "next_contact"
   FROM
     core.client_detailed_view the_mother

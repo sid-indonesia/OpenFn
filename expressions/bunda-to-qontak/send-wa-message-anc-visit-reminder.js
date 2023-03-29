@@ -19,6 +19,10 @@ fn(state => {
         },
         {
           "key": "2",
+          "value": "next_contact_date"
+        },
+        {
+          "key": "3",
           "value": "next_contact"
         }
       ]
